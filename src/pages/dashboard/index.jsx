@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Button, TextField, Typography, Grid, Paper, Divider, Link } from "@mui/material";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend} from "chart.js";
@@ -7,7 +7,8 @@ import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebaseConfig";
 import { red, green, blue, lightBlue, cyan, teal, lightGreen, grey } from '@mui/material/colors';
-
+import { ref, set, get, child } from "firebase/database";
+import { database } from "../../firebaseConfig";
 
 // Register chart.js modules
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -46,6 +47,16 @@ export default function DashboardPage() {
     pastDate.setDate(today.getDate() - 360);
     const startDate = pastDate.toISOString().split("T")[0];
 
+    //write save last searched stock
+    try {
+      await set(ref(database, "lastSearch"), {
+        ticker: stock
+      });
+      console.log("last searched stock saved to firebase real time db");
+    } catch(error) {
+      throw new Error(error);
+    }
+
     // Fetch metadata and stock data
     getCompanyMetadata(stock, tiingoToken);
     getStockData(stock, rapidKey);
@@ -53,6 +64,30 @@ export default function DashboardPage() {
 
     setStock("");
   };
+
+  // ------------------ Automatically search stock if a ticker found in firebase db ------------------
+  useEffect(() => {
+    const fetchLastSearch = async () => {
+      try {
+        const dbRef = ref(database);
+        const snapshot = await get(child(dbRef, `lastSearch/ticker`));
+  
+        if (snapshot.exists()) {
+          const ticker = snapshot.val();
+          getStockData(ticker, rapidKey);
+          getNews(ticker, undefined, tiingoToken);
+          getCompanyMetadata(ticker, tiingoToken);
+          console.log("Data:", ticker);
+        } else {
+          console.log("No data available");
+        }
+      } catch (error) {
+        console.error("Error getting data:", error);
+      }
+    };
+  
+    fetchLastSearch();
+  }, []);  
 
   // ------------------ Company Metadata ------------------
   const getCompanyMetadata = async (ticker, token) => {
@@ -164,6 +199,9 @@ export default function DashboardPage() {
           </Typography>
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Button sx={{ justifyContent: "flex-start", color: "#cbd5e1" }}>
+              Chat
+            </Button>
             <Button startIcon={<FaRegCommentDots />} sx={{ justifyContent: "flex-start", color: "#cbd5e1" }}>
               News
             </Button>
@@ -294,12 +332,12 @@ export default function DashboardPage() {
                 </Typography>
 
                 <Box display="flex" flexWrap="wrap" columnGap={6} rowGap={2}>
-                  <Typography variant="body2"><strong>Market cap</strong> <br/> {stockData?.marketCap ? formatNumber(stockData.marketCap) : null}</Typography>
-                  <Typography variant="body2"><strong>Dividend yield</strong> <br/> {stockData?.dividendYield}%</Typography>
-                  <Typography variant="body2"><strong>Average 10D volume</strong> <br/> {stockData?.averageDailyVolume10Day ? formatNumber(stockData.averageDailyVolume10Day) : null }</Typography>
-                  <Typography variant="body2"><strong>Volume</strong> <br/> {stockData?.regularMarketVolume ? formatNumber(stockData.regularMarketVolume) : null }</Typography>
-                  <Typography variant="body2"><strong>Today High</strong> <br/> {stockData?.regularMarketDayHigh ? stockData.regularMarketDayHigh.toFixed(2) : null }</Typography>
-                  <Typography variant="body2"><strong>Today Low</strong> <br/> {stockData?.regularMarketDayLow ? stockData.regularMarketDayLow.toFixed(2) : null}</Typography>
+                  <Typography variant="body2"><strong>Market cap</strong> <br/> {stockData?.marketCap ? formatNumber(stockData.marketCap) : "_"}</Typography>
+                  <Typography variant="body2"><strong>Dividend yield</strong> <br/> {stockData?.dividendYield ? `${stockData?.dividendYield}%` : "_"}</Typography>
+                  <Typography variant="body2"><strong>Average 10D volume</strong> <br/> {stockData?.averageDailyVolume10Day ? formatNumber(stockData.averageDailyVolume10Day) : "_" }</Typography>
+                  <Typography variant="body2"><strong>Volume</strong> <br/> {stockData?.regularMarketVolume ? formatNumber(stockData.regularMarketVolume) : "_" }</Typography>
+                  <Typography variant="body2"><strong>Today High</strong> <br/> {stockData?.regularMarketDayHigh ? stockData.regularMarketDayHigh.toFixed(2) : "_" }</Typography>
+                  <Typography variant="body2"><strong>Today Low</strong> <br/> {stockData?.regularMarketDayLow ? stockData.regularMarketDayLow.toFixed(2) : "_"}</Typography>
                   <Typography variant="body2"><strong>Open Price</strong> <br/> {stockData?.regularMarketOpen}</Typography>
                   <Typography variant="body2"><strong>52 Week low</strong> <br/> {stockData?.fiftyTwoWeekLow}</Typography>
                   <Typography variant="body2"><strong>52 Week high</strong> <br/> {stockData?.fiftyTwoWeekHigh}</Typography>
@@ -311,14 +349,14 @@ export default function DashboardPage() {
                     <Typography variant="h6" fontWeight="bold" color="white">
                       Top News
                     </Typography>
-                    <Link mt={1.5} underline="no-underline" color={lightBlue[500]}>
+                    <Link mt={1.5} underline="no-underline" color={lightBlue[500]} sx={{ "&:hover": { textDecoration: "underline", cursor: "pointer"}}}>
                       Show more
                     </Link>
                   </Box>
                 
                   <hr />
                   { stockNews ? stockNews.slice(0,4).map((news, index) => (
-                    <Link href={news?.url} target="_blank" underline="none" color={white}>
+                    <Link key={news.id} href={news?.url} target="_blank" underline="none" color={white}>
                       <Box key={index} py={4} px={3} mx={-3} 
                       sx={{
                         "&:hover": {
