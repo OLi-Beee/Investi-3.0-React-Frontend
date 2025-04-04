@@ -93,8 +93,13 @@ export default function DashboardPage() {
   };
 
   // ------------------ Number Formatter ------------------
-  const formatNumber = n => n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1) + 'M' : n.toLocaleString();
-
+  const formatNumber = n => {
+    if (n >= 1e12) return (n / 1e12).toFixed(n % 1e12 === 0 ? 0 : 1) + 'T';
+    if (n >= 1e9) return (n / 1e9).toFixed(n % 1e9 === 0 ? 0 : 1) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1) + 'M';
+    return n.toLocaleString();
+  };
+  
   // ------------------ Dummy Chart Data ------------------
   const stockPerformanceData = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
@@ -289,18 +294,22 @@ export default function DashboardPage() {
                 </Typography>
 
                 <Box display="flex" flexWrap="wrap" columnGap={6} rowGap={2}>
-                  <Typography variant="body2"><strong>Market cap</strong> <br/> {stockData?.marketCap}</Typography>
-                  <Typography variant="body2"><strong>Dividend yield</strong> <br/> {stockData?.dividendYield}</Typography>
+                  <Typography variant="body2"><strong>Market cap</strong> <br/> {stockData?.marketCap ? formatNumber(stockData.marketCap) : null}</Typography>
+                  <Typography variant="body2"><strong>Dividend yield</strong> <br/> {stockData?.dividendYield}%</Typography>
                   <Typography variant="body2"><strong>Average 10D volume</strong> <br/> {stockData?.averageDailyVolume10Day ? formatNumber(stockData.averageDailyVolume10Day) : null }</Typography>
-                  <Typography variant="body2"><strong>Today High</strong> <br/> {stockData?.regularMarketDayHigh}</Typography>
-                  <Typography variant="body2"><strong>Today Low</strong> <br/> {stockData?.regularMarketDayLow}</Typography>
+                  <Typography variant="body2"><strong>Volume</strong> <br/> {stockData?.regularMarketVolume ? formatNumber(stockData.regularMarketVolume) : null }</Typography>
+                  <Typography variant="body2"><strong>Today High</strong> <br/> {stockData?.regularMarketDayHigh ? stockData.regularMarketDayHigh.toFixed(2) : null }</Typography>
+                  <Typography variant="body2"><strong>Today Low</strong> <br/> {stockData?.regularMarketDayLow ? stockData.regularMarketDayLow.toFixed(2) : null}</Typography>
                   <Typography variant="body2"><strong>Open Price</strong> <br/> {stockData?.regularMarketOpen}</Typography>
+                  <Typography variant="body2"><strong>52 Week low</strong> <br/> {stockData?.fiftyTwoWeekLow}</Typography>
+                  <Typography variant="body2"><strong>52 Week high</strong> <br/> {stockData?.fiftyTwoWeekHigh}</Typography>
+                  <Typography variant="body2"><strong>52 Week range</strong> <br/> {stockData?.fiftyTwoWeekRange}</Typography>
                 </Box>
 
                 <Box mt={4}>
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="h6" fontWeight="bold" color="white">
-                      Top {companyMetadata?.name} News
+                      Top News
                     </Typography>
                     <Link mt={1.5} underline="no-underline" color={lightBlue[500]}>
                       Show more
