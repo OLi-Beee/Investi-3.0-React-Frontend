@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 
-const DashboardSidebar = () => {
+function DashboardSidebar() {
   const navigate = useNavigate();
 
    // ------------------ Sign Out ------------------

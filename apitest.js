@@ -1,3 +1,5 @@
+/// for testing you can write anything there
+
 const OpenAI = require("openai");
 require("dotenv").config();
 
@@ -11,14 +13,13 @@ const openai = new OpenAI({
   project: PROJ_ID,
 });
 
-const useGPT = async (req, res) => {
-  const { prompt } = req.body;
+const useGPT = async () => {
 
   try {
     const stream = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0,
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: "write a 300 words story about a developer " }],
       stream: true,
     });
 
@@ -26,14 +27,13 @@ const useGPT = async (req, res) => {
 
     for await (const chunk of stream) {
       fullResponse += chunk.choices[0]?.delta?.content || "";
-    }
+      process.stdout.write(chunk.choices[0]?.delta?.content || "");
 
-    res.status(200).json({ message: "success", data: fullResponse });
+    }
 
   } catch (error) {
     console.error("OpenAI error:", error);
-    res.status(500).json({ message: "OpenAI error", error: error.message });
   }
 };
 
-module.exports = useGPT;
+useGPT()
