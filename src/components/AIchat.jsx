@@ -1,60 +1,62 @@
 import { useState } from "react";
 import { FaPaperPlane } from "react-icons/fa";
-import { BsStars } from "react-icons/bs";
 import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-} from "chart.js";
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  CircularProgress,
-  Paper
-} from "@mui/material";
-
-// Register necessary Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+import { Box, Typography, TextField, Button, CircularProgress, Paper } from "@mui/material";
+import { red, green, blue, lightBlue, cyan, teal, lightGreen, grey } from '@mui/material/colors';
 
 export default function AIChat() {
   const [question, setQuestion] = useState("");
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [aiReponse, setAiResponse] = useState("");
+
+  const sendQuestion = async (prompt) => {
+    const url = "http://localhost:3001/openai/question";
+  
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify({ prompt }), // Fixed
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(`Status ${response.status} ${response.statusText}: ${result.message}`);
+      }
+  
+      console.log(response.status, response.statusText, result.data);
+      setAiResponse(prev => prev + "\n" + result.data);
+    } catch (error) {
+      console.error("Error from OpenAI:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
 
   const handleAskAI = async () => {
     if (!question) return;
+    console.log("question", question)
     setLoading(true);
+    sendQuestion(question);
+  }
 
-    // Simulated AI response
-    setTimeout(() => {
-      setChartData({
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
-        datasets: [
-          {
-            label: "AI Prediction",
-            data: [120, 130, 125, 140, 150, 160, 170],
-            borderColor: "#facc15",
-            backgroundColor: "rgba(250, 204, 21, 0.2)",
-            tension: 0.4,
-          },
-        ],
-      });
-      setLoading(false);
-    }, 2000);
-  };
+  const black = "#000000";
 
   return (
-    <Paper sx={{ bgcolor: "inherit", borderRadius: 2, color: "white" }}>
+    <Box m={.5} sx={{borderRadius: 2, color: "white", background: black, minWidth: "80%" }}>
+      <Box sx={{ minHeight: "23em", background: black,}} >
+        
+      </Box>
+      <Box sx={{ minHeight: "20em", px:2, background: black}} >
+        <Typography textOverflow="wrap">
+          {aiReponse ? aiReponse : null }
+        </Typography>
+      </Box>
       {/* Input */}
-      <Box display="flex" gap={1} alignItems="center" mb={0}>
+      <Box display="flex" gap={1} alignItems="center">
         <TextField
           variant="outlined"
           fullWidth
@@ -79,7 +81,7 @@ export default function AIChat() {
           onClick={handleAskAI}
           disabled={loading}
           sx={{
-            bgcolor: "#22c55e",
+            bgcolor: lightBlue[500] ,
             color: "black",
             px: 3,
             py: 2.5,
@@ -97,6 +99,6 @@ export default function AIChat() {
           <Line data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
         </Box>
       )}
-    </Paper>
+    </Box>
   );
 }

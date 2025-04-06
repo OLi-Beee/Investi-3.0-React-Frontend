@@ -3,12 +3,12 @@ import { Box, Button, TextField, Typography, Grid, Paper, Divider, Link } from "
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend} from "chart.js";
 import { FaSearch, FaPlus, FaRegCommentDots } from "react-icons/fa";
-import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebaseConfig";
 import { red, green, blue, lightBlue, cyan, teal, lightGreen, grey } from '@mui/material/colors';
 import { ref, set, get, child } from "firebase/database";
 import { database } from "../../firebaseConfig";
+import DashboardSidebar from "../../components/DashboardSidebar";
 
 // Register chart.js modules
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -27,16 +27,6 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const tiingoToken = process.env.REACT_APP_TIINGO_API_KEY;
   const rapidKey = process.env.REACT_APP_RAPID_API_KEY;
-
-  // ------------------ Sign Out ------------------
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      navigate("/signin");
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
 
   // ------------------ Search ------------------
   const handleSearch = async () => {
@@ -183,51 +173,7 @@ export default function DashboardPage() {
     <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: black, p: 0.5, color: "white" }}>
 
       {/* Sidebar */}
-      <Box
-        sx={{
-          width: 240,
-          backgroundColor: black,
-          p: 3,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-        }}
-      >
-        <Box>
-          <Typography variant="h6" fontWeight="bold" sx={{ mb: 4}}>
-            Investi
-          </Typography>
-
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Button sx={{ justifyContent: "flex-start", color: "#cbd5e1" }}>
-              Chat
-            </Button>
-            <Button startIcon={<FaRegCommentDots />} sx={{ justifyContent: "flex-start", color: "#cbd5e1" }}>
-              News
-            </Button>
-            <Button sx={{ justifyContent: "flex-start", color: "#cbd5e1" }}>
-              Wishlist
-            </Button>
-            <Button sx={{ justifyContent: "flex-start", color: "#cbd5e1" }}>
-              Settings
-            </Button>
-          </Box>
-          <Button
-          variant="text"
-          color="error"
-          onClick={handleSignOut}
-          sx={{
-            mt: 4,
-            justifyContent: "flex-start",
-            color: "#ef4444",
-          }}
-        >
-          Sign Out
-        </Button>
-        </Box>
-
-       
-      </Box>
+     <DashboardSidebar />
 
       {/* Main Content */}
       <Box sx={{ flex: 1, px: 0.5, background: black }}>
