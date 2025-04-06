@@ -41,6 +41,7 @@ export default function AIChat() {
     console.log("question", question)
     setLoading(true);
     sendQuestion(question);
+    setQuestion("");
   }
 
   const black = "#000000";
