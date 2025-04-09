@@ -22,7 +22,7 @@ function App() {
       <Route path="/signin" element={<SignIn/>} />
       <Route path="/signup" element={<Signup/>} />
       <Route path="/dashboard" element={<DashboardPage/>} />
-      <Route path="/chat" element={<ChatPage/>} />
+      <Route path="/dashboard/chat" element={<ChatPage/>} />
     </Routes>
   );
 }

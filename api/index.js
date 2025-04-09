@@ -13,9 +13,3 @@ router.get("/tiingo/company-metadata", controllers.getCompanyMetadata);
 router.post("/openai/question", useOpenAi);
 
 module.exports = router;
-
-
-/**
- * Prompt engineering - How to ask chatGPT questions for the best results
- * 
- */

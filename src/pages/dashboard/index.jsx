@@ -9,19 +9,32 @@ import { red, green, blue, lightBlue, cyan, teal, lightGreen, grey } from '@mui/
 import { ref, set, get, child } from "firebase/database";
 import { database } from "../../firebaseConfig";
 import DashboardSidebar from "../../components/DashboardSidebar";
+import { RxCross2 } from "react-icons/rx";
+import { onAuthStateChanged } from "firebase/auth";
 
 // Register chart.js modules
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+// ------------------ Color Variables ------------------
+const darkGray = "#0f172a";
+const white = "#ffffff";
+const gray = "#1e293b";
+const black = "#000000"
 
 export default function DashboardPage() {
 
   // ------------------ State ------------------
   const [stock, setStock] = useState("");
+  const [currentStock, setCurrentStock] = useState("");
   const [stockData, setStockData] = useState([]);
   const [stockMetaData, setStockMetaData] = useState([]);
   const [isBullish, setIsBullish] = useState(true);
   const [companyMetadata, setCompanyMetadata] = useState([]);
   const [stockNews, setStockNews] = useState([]);
+  const [email, setEmail] = useState("");
+  const [userId, setUserId] = useState("");
+  const [wishlist, setWishlist] = useState(null);
+
 
   // ------------------ Config ------------------
   const navigate = useNavigate();
@@ -29,7 +42,7 @@ export default function DashboardPage() {
   const rapidKey = process.env.REACT_APP_RAPID_API_KEY;
 
   // ------------------ Search ------------------
-  const handleSearch = async () => {
+  const handleSearch = async (stock) => {
     if (!stock) return;
 
     const today = new Date();
@@ -37,47 +50,115 @@ export default function DashboardPage() {
     pastDate.setDate(today.getDate() - 360);
     const startDate = pastDate.toISOString().split("T")[0];
 
+
     //write save last searched stock
-    try {
-      await set(ref(database, "lastSearch"), {
-        ticker: stock
-      });
-      console.log("last searched stock saved to firebase real time db");
-    } catch(error) {
-      throw new Error(error);
+    if (!userId) {
+      console.log("no user id found");
+      return;
     }
+    
+    saveLastSearch(userId)
 
     // Fetch metadata and stock data
     getCompanyMetadata(stock, tiingoToken);
     getStockData(stock, rapidKey);
     getNews(stock, undefined, tiingoToken)
 
-    setStock("");
+    setCurrentStock(stock);
+    setStock(""); 
+
   };
 
-  // ------------------ Automatically search stock if a ticker found in firebase db ------------------
-  useEffect(() => {
-    const fetchLastSearch = async () => {
-      try {
-        const dbRef = ref(database);
-        const snapshot = await get(child(dbRef, `lastSearch/ticker`));
+  //---------- hanle search on key down ----------
+  const handleSearchOnEnter = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // optional: prevents default form submission
+      handleSearch(e.target.value); 
+    }
+  };
   
-        if (snapshot.exists()) {
-          const ticker = snapshot.val();
-          getStockData(ticker, rapidKey);
-          getNews(ticker, undefined, tiingoToken);
-          getCompanyMetadata(ticker, tiingoToken);
-          console.log("Data:", ticker);
-        } else {
-          console.log("No data available");
-        }
-      } catch (error) {
-        console.error("Error getting data:", error);
+
+  // -------------------- save last search ------------------
+  const saveLastSearch = async (userId) => {
+    try {
+      await set(ref(database, `lastSearch/${userId}`), stock)
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // --------------------- add to wishlist ------------------------
+  const addToWishlish = async () => {
+    if (!userId || !currentStock) console.log("userid not found", "current stock not found", currentStock)
+
+    try {
+      const wishlistRef = ref(database, `wishlist/${userId}`);
+      const snapshot = await get(wishlistRef);
+  
+      let currentWishlist = [];
+  
+      if (snapshot.exists()) {
+        currentWishlist = snapshot.val();
       }
-    };
   
-    fetchLastSearch();
-  }, []);  
+      // Prevent duplicates
+      if (!currentWishlist.includes(currentStock)) {
+        const updatedWishlist = [...currentWishlist, currentStock.toUpperCase()];
+        await set(wishlistRef, updatedWishlist);
+        console.log("Stock added to wishlist!");
+        fetchWishlist();
+      } else {
+        console.log("Stock already in wishlist");
+      }
+  
+    } catch (error) {
+      console.error("Error saving to wishlist:", error);
+    }
+  }
+
+  // -------------- get wishlist ----------------------
+  const fetchWishlist = async () => {
+    if (!userId) return;
+
+    try {
+      const wishlistRef = ref(database, `wishlist/${userId}`);
+      const snapshot = await get(wishlistRef);
+
+      if (snapshot.exists()) {
+        setWishlist(snapshot.val()); // should be an array like ["AAPL", "TSLA"]
+        console.log("Wishlist loaded:", snapshot.val());
+      } else {
+        console.log("No wishlist found");
+        setWishlist([]); // Optional: reset to empty array if not found
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+    }
+  };
+
+
+  //------------- remove from wishlish -------------
+  const removeFromWishlist = async (tickerToRemove) => {
+    if (!userId) return;
+  
+    try {
+      const wishlistRef = ref(database, `wishlist/${userId}`);
+      const snapshot = await get(wishlistRef);
+  
+      if (snapshot.exists()) {
+        const currentWishlist = snapshot.val();
+        const updatedWishlist = currentWishlist.filter((ticker) => ticker !== tickerToRemove);
+  
+        await set(wishlistRef, updatedWishlist);
+        setWishlist(updatedWishlist); // update local state
+        console.log(`${tickerToRemove} removed from wishlist`);
+        fetchWishlist() // update client
+      }
+    } catch (error) {
+      console.error("Error removing stock from wishlist:", error);
+    }
+  };
+  
 
   // ------------------ Company Metadata ------------------
   const getCompanyMetadata = async (ticker, token) => {
@@ -91,7 +172,6 @@ export default function DashboardPage() {
 
       console.log("Status:", response.status, response.statusText, result.message);
       setCompanyMetadata(result.data);
-      console.log("Company metadata:", result);
 
     } catch (error) {
       console.error("Fetch error:", error);
@@ -113,7 +193,7 @@ export default function DashboardPage() {
       console.log(response.status, response.statusText, result.message);
 
     } catch (error){
-      throw new Error(error);
+      console.log(error);
     }
   };
 
@@ -152,25 +232,67 @@ export default function DashboardPage() {
         console.log(response.status, response.statusText, result.message);
       }
 
-      console.log("News =>",result.data);
       console.log(response.status, response.statusText, result.message);
       setStockNews(result.data);
 
     } catch (error) {
-      throw new Error(error);
+      console.log(error);
     }
   }
 
 
-  // ------------------ Color Variables ------------------
-  const darkGray = "#0f172a";
-  const white = "#ffffff";
-  const gray = "#1e293b";
-  const black = "#000000"
+  //----------------- useEffects ------------------
+
+  //get user on auth state change
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+        setEmail(user.email);
+      }
+    });
+  
+    return () => unsubscribe(); // Clean up listener
+  }, []);
+
+
+  useEffect(() => {
+    const fetchLastSearch = async () => {
+      if (!userId) return;
+  
+      try {
+        const dbRef = ref(database);
+        const snapshot = await get(child(dbRef, `/lastSearch/${userId}`));
+  
+        if (snapshot.exists()) {
+          const ticker = snapshot.val();
+          setCurrentStock(ticker);
+          console.log("Last searched ticker:", ticker);
+          getStockData(ticker, rapidKey);
+          getNews(ticker, undefined, tiingoToken);
+          getCompanyMetadata(ticker, tiingoToken);
+        } else {
+          console.log("No last search found");
+        }
+      } catch (error) {
+        console.error("Error getting data:", error);
+      }
+    };
+  
+    fetchLastSearch();
+  }, [userId]); 
+
+  //------------- get wishlist -----------------
+  useEffect(() => {  
+    fetchWishlist();
+  }, [userId]);
+  
+  
+
 
   // ------------------ JSX ------------------
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: black, p: 0.5, color: "white" }}>
+    <Box sx={{ display: "grid", gridTemplateColumns:"15% 65% 20%" , minHeight: "100vh", backgroundColor: black, color: "white" }}>
 
       {/* Sidebar */}
      <DashboardSidebar />
@@ -179,12 +301,13 @@ export default function DashboardPage() {
       <Box sx={{ flex: 1, px: 0.5, background: black }}>
 
         {/* Search Bar */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5, mt:0.5 }}>
           <TextField
             fullWidth
             placeholder="Search for a stock (e.g., TSLA, AAPL)"
             value={stock}
             onChange={(e) => setStock(e.target.value)}
+            onKeyDown={(e) => handleSearchOnEnter(e)}
             InputProps={{
               // startAdornment: <FaSearch style={{ marginRight: 10 }} />,
               style: { backgroundColor: black, color: "white", borderRadius: 0 },
@@ -202,7 +325,7 @@ export default function DashboardPage() {
               "&:hover": { backgroundColor: "#22c55e" },
               textTransform: "none",
             }}
-            onClick={handleSearch}
+            onClick={() => handleSearch(stock)}
           >
             {/* Search */}
             <FaSearch fontSize="14pt" color={white}/>
@@ -215,7 +338,7 @@ export default function DashboardPage() {
 
             {/* Stock Chart */}
             <Box>
-              <Paper sx={{ p: 3, backgroundColor: black, minHeight: "26em", borderRadius: 0 }}>
+              <Paper sx={{ py:3, px:2, backgroundColor: black, minHeight: "26em", borderRadius: 0 }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                     <Typography fontWeight="bold" color="#cbd5e1">
@@ -238,6 +361,7 @@ export default function DashboardPage() {
                       startIcon={<FaPlus />}
                       variant="outlined"
                       sx={{ color: "#cbd5e1", borderColor: "#334155", textTransform: "none" }}
+                      onClick={addToWishlish}
                     >
                       Add to Wishlist
                     </Button>
@@ -271,7 +395,8 @@ export default function DashboardPage() {
               ) : (
                 "Search a stock to get company profile"
               )}
-
+            
+              {/* Stock key statistics */}
               <Box container spacing={2} mt={6} color="#cbd5e1">
                 <Typography mb={2} variant="h6" fontWeight="bold" color="white">
                   Key Statistics
@@ -322,6 +447,48 @@ export default function DashboardPage() {
           </Box>
         </Box>
       </Box>
+      <WishlistWIdget wishlist={wishlist} removeFromWishlist={removeFromWishlist} handleSearch={handleSearch}/>
     </Box>
   );
 }
+
+
+const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch }) => {
+  return (
+    <Paper sx={{ d: "flex", flexDirection: "column", gap: 0, width: "19.5%", p: 1, minHeight: 340, right: 0, top: 10, position: "fixed", background: black, color: white, }}>
+      <Box sx={{ border:"solid", borderColor: grey[900], borderWidth: ".1px", py:1, px:1, minWidth: "90%" }}>
+        <Typography variant="body1" fontWeight="bold" textAlign="center">Wishlist</Typography>
+      </Box>
+
+      {wishlist && wishlist.length > 0 ? (
+        wishlist.map((ticker, index) => (
+          <Box key={index} sx={{ justifyContent: "space-between", border:"solid", borderColor: grey[900], borderWidth: "0.5px", p:1, minWidth: "90%",
+            "&:hover": {
+              backgroundColor: grey[900],
+              cursor: "pointer"
+            }}}
+            onClick={() => handleSearch(ticker)}
+          >
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb:1.5 }}>
+              <Typography variant="body2" fontWeight="bold">{ticker}</Typography>
+              <Typography
+                sx={{ cursor: "pointer" }}
+                onClick={() => removeFromWishlist(ticker)}
+              >
+                <RxCross2 />
+              </Typography>
+            </Box>
+            {/* <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+              <Typography>price</Typography>
+              <Typography>Analysis</Typography>
+            </Box> */}
+          </Box>
+        ))
+      ) : (
+        <Typography sx={{ mt: 2, textAlign: "center", color: "gray" }}>
+          No stocks in wishlist.
+        </Typography>
+      )}
+    </Paper>
+  );
+};

@@ -20,9 +20,9 @@ function DashboardSidebar() {
   return (
     <Box
       sx={{
-        width: 240,
+        // width: 200,
         backgroundColor: "black",
-        p: 3,
+        px: 4,
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -30,25 +30,21 @@ function DashboardSidebar() {
       }}
     >
       <Box>
-        <Typography variant="h6" fontWeight="bold" sx={{ mb: 4, color: "#fff" }}>
+        <Typography variant="h6" fontWeight="bold" sx={{ pb: 3, pt: 2, color: "#fff", "&:hover": { cursor: "pointer"} }} onClick={() => navigate("/dashboard")}>
           Investi
         </Typography>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Button
-            onClick={() => navigate("/chat")}
+            onClick={() => navigate("/dashboard/chat")}
             sx={{ justifyContent: "flex-start", color: "#cbd5e1" }}
           >
             Chat
           </Button>
           <Button
-            startIcon={<FaRegCommentDots />}
             sx={{ justifyContent: "flex-start", color: "#cbd5e1" }}
           >
             News
-          </Button>
-          <Button sx={{ justifyContent: "flex-start", color: "#cbd5e1" }}>
-            Wishlist
           </Button>
           <Button sx={{ justifyContent: "flex-start", color: "#cbd5e1" }}>
             Settings

@@ -5,6 +5,7 @@ import { FaChartLine } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { auth, googleProvider } from "../../firebaseConfig";
 import { FcGoogle } from "react-icons/fc";
+import Cookies from "js-cookie";
 
 
 const SignIn = () => {
@@ -13,9 +14,15 @@ const SignIn = () => {
 
   const signInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
-      alert('Signed in successfully with Google');
-      navigate("/dashboard")
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      const email = user.email;
+  
+      // You can store it in state, cookies, localStorage, etc.
+      console.log("Signed in user email:", email);
+      Cookies.set("userEmail", email); // Example of storing in a cookie
+  
+      navigate("/dashboard");
     } catch (error) {
       console.error('Error signing in with Google', error);
     }
