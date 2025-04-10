@@ -9,8 +9,9 @@ import { red, green, blue, lightBlue, cyan, teal, lightGreen, grey } from '@mui/
 import { ref, set, get, child } from "firebase/database";
 import { database } from "../../firebaseConfig";
 import DashboardSidebar from "../../components/DashboardSidebar";
-import { RxCross2 } from "react-icons/rx";
 import { onAuthStateChanged } from "firebase/auth";
+import WishlistWIdget from "../../components/WishlistWidget";
+import StockChart from "../../components/stockChart";
 
 // Register chart.js modules
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -34,22 +35,46 @@ export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [wishlist, setWishlist] = useState(null);
+  const [candleSticksData, setCandleSticksData] = useState([]);
 
 
-  // ------------------ Config ------------------
+  // ------------------ use navigate  ------------------
   const navigate = useNavigate();
-  const tiingoToken = process.env.REACT_APP_TIINGO_API_KEY;
-  const rapidKey = process.env.REACT_APP_RAPID_API_KEY;
+
+  
+  // ------------------ perform analysis ---------------
+
+
+
+  //-------- get date from 1 year ago -------------
+  const getDate365DaysAgo = () => {
+    const today = new Date();
+    const pastDate = new Date();
+    pastDate.setDate(today.getDate() - 365);
+  
+    // Format to YYYY-MM-DD
+    const year = pastDate.getFullYear();
+    const month = String(pastDate.getMonth() + 1).padStart(2, '0');
+    const day = String(pastDate.getDate()).padStart(2, '0');
+  
+    return `${year}-${month}-${day}`;
+  };
+  
+
+  //-------------- get candlesticks -------------
+  const getCandleSticks = async(ticker, startDate) => {
+    const url = `http://localhost:3001/tiingo/candlestics?ticker=${ticker}&startDate=${startDate}`;
+    const response = await fetch(url);
+    const result = await response.json();
+
+    setCandleSticksData(result.data);
+    console.log("status", response.status, result.message);
+  }
 
   // ------------------ Search ------------------
   const handleSearch = async (stock) => {
     if (!stock) return;
-
-    const today = new Date();
-    const pastDate = new Date();
-    pastDate.setDate(today.getDate() - 360);
-    const startDate = pastDate.toISOString().split("T")[0];
-
+    const startDate = getDate365DaysAgo();
 
     //write save last searched stock
     if (!userId) {
@@ -57,12 +82,13 @@ export default function DashboardPage() {
       return;
     }
     
-    saveLastSearch(userId)
+    saveLastSearch(userId, stock)
 
     // Fetch metadata and stock data
-    getCompanyMetadata(stock, tiingoToken);
-    getStockData(stock, rapidKey);
-    getNews(stock, undefined, tiingoToken)
+    getCandleSticks(stock, startDate);
+    getCompanyMetadata(stock);
+    getStockData(stock);
+    getNews(stock, undefined)
 
     setCurrentStock(stock);
     setStock(""); 
@@ -79,7 +105,7 @@ export default function DashboardPage() {
   
 
   // -------------------- save last search ------------------
-  const saveLastSearch = async (userId) => {
+  const saveLastSearch = async (userId, stock) => {
     try {
       await set(ref(database, `lastSearch/${userId}`), stock)
     } catch (error) {
@@ -161,9 +187,9 @@ export default function DashboardPage() {
   
 
   // ------------------ Company Metadata ------------------
-  const getCompanyMetadata = async (ticker, token) => {
+  const getCompanyMetadata = async (ticker) => {
     try {
-      const response = await fetch(`http://localhost:3001/tiingo/company-metadata?ticker=${ticker}&token=${token}`);
+      const response = await fetch(`http://localhost:3001/tiingo/company-metadata?ticker=${ticker}`);
       const result = await response.json();
 
       if (!response.ok){
@@ -179,16 +205,21 @@ export default function DashboardPage() {
   };
 
   // ------------------ Stock Data ------------------
-  const getStockData = async (ticker, key) => {
+  const getStockData = async (ticker) => {
+    if (!ticker) {
+      console.log("no ticker provided, ticker is", ticker);
+      return;
+    }
+
     try {
-      const response = await fetch(`http://localhost:3001/yf/stockdata?key=${key}&ticker=${ticker}`);
+      const response = await fetch(`http://localhost:3001/yf/stockdata?ticker=${ticker}`);
       const result = await response.json();
 
       if (!response.ok) {
         console.log(response.status, response.statusText, result.message);
       }
 
-      console.log(result);
+      console.log(result.data)
       setStockData(result.data.body[0]);
       console.log(response.status, response.statusText, result.message);
 
@@ -204,26 +235,12 @@ export default function DashboardPage() {
     if (n >= 1e6) return (n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1) + 'M';
     return n.toLocaleString();
   };
-  
-  // ------------------ Dummy Chart Data ------------------
-  const stockPerformanceData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
-    datasets: [
-      {
-        label: "Stock Price",
-        data: [120, 135, 150, 170, 165, 180, 200],
-        borderColor: "#10b981",
-        backgroundColor: "rgba(16, 185, 129, 0.2)",
-        tension: 0.4,
-      },
-    ],
-  };
 
   // ------------------ Get News ------------------
-  const getNews = async (ticker, tags, token) => {
-    const url = ticker ? `http://localhost:3001/tiingo/news?ticker=${ticker}&token=${token}` 
-                : tags ? `http://localhost:3001/tiingo/news?tags=${tags}&token=${token}` 
-                : `http://localhost:3001/tiingo/news?token=${token}`
+  const getNews = async (ticker, tags) => {
+    const url = ticker ? `http://localhost:3001/tiingo/news?ticker=${ticker}` 
+                : tags ? `http://localhost:3001/tiingo/news?tags=${tags}` 
+                : `http://localhost:3001/tiingo/news`
     try {
       const response = await fetch(url);
       const result = await response.json();
@@ -257,6 +274,8 @@ export default function DashboardPage() {
 
 
   useEffect(() => {
+    const startDate = getDate365DaysAgo();
+
     const fetchLastSearch = async () => {
       if (!userId) return;
   
@@ -268,9 +287,10 @@ export default function DashboardPage() {
           const ticker = snapshot.val();
           setCurrentStock(ticker);
           console.log("Last searched ticker:", ticker);
-          getStockData(ticker, rapidKey);
-          getNews(ticker, undefined, tiingoToken);
-          getCompanyMetadata(ticker, tiingoToken);
+          getCandleSticks(ticker, startDate);
+          getStockData(ticker);
+          getNews(ticker, undefined);
+          getCompanyMetadata(ticker);
         } else {
           console.log("No last search found");
         }
@@ -319,10 +339,10 @@ export default function DashboardPage() {
             sx={{
               backgroundColor: black,
               color: white,
-              px: 4,
-              py: 2.3,
+              px: 2,
+              py: 2,
               borderRadius: 0,
-              "&:hover": { backgroundColor: "#22c55e" },
+              "&:hover": { backgroundColor: lightBlue[500]},
               textTransform: "none",
             }}
             onClick={() => handleSearch(stock)}
@@ -339,48 +359,32 @@ export default function DashboardPage() {
             {/* Stock Chart */}
             <Box>
               <Paper sx={{ py:3, px:2, backgroundColor: black, minHeight: "26em", borderRadius: 0 }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                    <Typography fontWeight="bold" color="#cbd5e1">
-                      {companyMetadata?.name || "Stock Chart"}
-                    </Typography>
-                    <Typography fontWeight="bold" color="#cbd5e1">
-                      {companyMetadata?.exchangeCode || ""}
-                    </Typography>
+                 {/* action buttons */}
+                  <Box sx={{ display: "flex", justifyContent: "end" , gap: 1 }}>
+                    <Button
+                        variant="outlined"
+                        sx={{ color: black, borderColor: lightBlue[900], textTransform: "none", background: lightBlue[500] }}
+                      >
+                        View AI Analysis
+                      </Button>
+                      <Button
+                        startIcon={<FaPlus />}
+                        variant="outlined"
+                        sx={{ color: "#cbd5e1", borderColor: "#334155", textTransform: "none" }}
+                        onClick={addToWishlish}
+                      >
+                        Add to Wishlist
+                      </Button>
                   </Box>
 
-                 {/* action buttons */}
-                 <Box sx={{ display: "flex", gap: 1 }}>
-                  <Button
-                      variant="outlined"
-                      sx={{ color: black, borderColor: grey[700], textTransform: "none", background: lightBlue[500] }}
-                    >
-                      View AI Analysis
-                    </Button>
-                    <Button
-                      startIcon={<FaPlus />}
-                      variant="outlined"
-                      sx={{ color: "#cbd5e1", borderColor: "#334155", textTransform: "none" }}
-                      onClick={addToWishlish}
-                    >
-                      Add to Wishlist
-                    </Button>
-                 </Box>
-                </Box>
-
-                <Typography mt={2} color="#cbd5e1">
+                {/* <Typography mt={2} color="#cbd5e1">
                   Stock Sentiment: {" "}
                   <span style={{ color: isBullish ? "#10b981" : "#ef4444" }}>
                     {isBullish ? "Bullish 🟢" : "Bearish 🔴"}
                   </span>
-                </Typography>
-
-                <Box mt={4} height={250}>
-                  <Line
-                    data={stockPerformanceData}
-                    options={{ responsive: true, maintainAspectRatio: false }}
-                  />
-                </Box>
+                </Typography> */}
+                
+                <StockChart data={candleSticksData} companyName={companyMetadata?.name} exchangeCode={companyMetadata?.exchangeCode}/> 
               </Paper>
             </Box>
 
@@ -447,48 +451,7 @@ export default function DashboardPage() {
           </Box>
         </Box>
       </Box>
-      <WishlistWIdget wishlist={wishlist} removeFromWishlist={removeFromWishlist} handleSearch={handleSearch}/>
+      <WishlistWIdget wishlist={wishlist} removeFromWishlist={removeFromWishlist} handleSearch={handleSearch} ticker={currentStock} />
     </Box>
   );
 }
-
-
-const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch }) => {
-  return (
-    <Paper sx={{ d: "flex", flexDirection: "column", gap: 0, width: "19.5%", p: 1, minHeight: 340, right: 0, top: 10, position: "fixed", background: black, color: white, }}>
-      <Box sx={{ border:"solid", borderColor: grey[900], borderWidth: ".1px", py:1, px:1, minWidth: "90%" }}>
-        <Typography variant="body1" fontWeight="bold" textAlign="center">Wishlist</Typography>
-      </Box>
-
-      {wishlist && wishlist.length > 0 ? (
-        wishlist.map((ticker, index) => (
-          <Box key={index} sx={{ justifyContent: "space-between", border:"solid", borderColor: grey[900], borderWidth: "0.5px", p:1, minWidth: "90%",
-            "&:hover": {
-              backgroundColor: grey[900],
-              cursor: "pointer"
-            }}}
-            onClick={() => handleSearch(ticker)}
-          >
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb:1.5 }}>
-              <Typography variant="body2" fontWeight="bold">{ticker}</Typography>
-              <Typography
-                sx={{ cursor: "pointer" }}
-                onClick={() => removeFromWishlist(ticker)}
-              >
-                <RxCross2 />
-              </Typography>
-            </Box>
-            {/* <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography>price</Typography>
-              <Typography>Analysis</Typography>
-            </Box> */}
-          </Box>
-        ))
-      ) : (
-        <Typography sx={{ mt: 2, textAlign: "center", color: "gray" }}>
-          No stocks in wishlist.
-        </Typography>
-      )}
-    </Paper>
-  );
-};
