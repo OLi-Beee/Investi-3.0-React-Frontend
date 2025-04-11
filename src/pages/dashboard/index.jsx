@@ -72,7 +72,6 @@ export default function DashboardPage() {
   // ------------------ Search ------------------
   const handleSearch = async (stock) => {
     if (!stock) return;
-    const startDate = getDate365DaysAgo();
 
     //write save last searched stock
     if (!userId) {
@@ -80,14 +79,12 @@ export default function DashboardPage() {
       return;
     }
     
-    saveLastSearch(userId, stock)
-
-    // Fetch metadata and stock data
-    getCandleSticks(stock, startDate);
-    getCompanyMetadata(stock);
-    getStockData(stock);
-    getNews(stock, undefined)
-
+    /**
+     * call get stock data, if we get stock data, then
+     * we automatically call all other functions to get 
+     * rest of stock statistics. see the getStockData function.
+     */
+    getStockData(stock); 
     setCurrentStock(stock);
     setStock(""); 
 
@@ -209,16 +206,26 @@ export default function DashboardPage() {
       return;
     }
 
+    const startDate = getDate365DaysAgo(); // get date from 1 year ago
+
     try {
       const response = await fetch(`http://localhost:3001/yf/stockdata?ticker=${ticker}`);
       const result = await response.json();
 
       if (!response.ok) {
         console.log(response.status, response.statusText, result.message);
+        return;
       }
-
-      console.log(result.data)
-      setStockData(result.data.body[0]);
+      
+      /**
+       * If response is ok, call all other functions to get stock stats
+       * save the ticker if we got a response.
+      **/
+      setStockData(result.data.body[0]); 
+      getCandleSticks(ticker, startDate);
+      getCompanyMetadata(ticker);
+      getNews(stock)
+      saveLastSearch(userId, ticker);
       console.log(response.status, response.statusText, result.message);
 
     } catch (error){
@@ -304,7 +311,7 @@ export default function DashboardPage() {
           console.log("Last searched ticker:", ticker);
           getCandleSticks(ticker, startDate);
           getStockData(ticker);
-          getNews(ticker, undefined);
+          getNews(ticker);
           getCompanyMetadata(ticker);
         } else {
           console.log("No last search found");

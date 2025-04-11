@@ -15,6 +15,11 @@ const StockChart = ({ data, companyName, exchangeCode, ticker, price, marketPric
       const response = await fetch(url)
       const result = await fetch(response);
 
+      if (!response.ok) {
+        console.log("no data for ticker", ticker);
+        return;
+      }
+
       setStockLiveData(result.data);
       console.log("stock live data", result.data)
       console.log(response.status, result.message, "data", result.data);
