@@ -3,6 +3,7 @@ import { FaRegCommentDots } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
+import { blueGrey, grey, lightBlue } from "@mui/material/colors";
 
 function DashboardSidebar() {
   const navigate = useNavigate();
@@ -20,17 +21,18 @@ function DashboardSidebar() {
   return (
     <Box
       sx={{
-        // width: 200,
-        backgroundColor: "black",
-        px: 4,
+        minWidth: "10.43em",
+        borderRight: `solid 1px ${grey[900]}`,
+        backgroundColor: "#000",
+        px: 3,
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         minHeight: "100vh",
       }}
     >
-      <Box>
-        <Typography variant="h6" fontWeight="bold" sx={{ pb: 3, pt: 2, color: "#fff", "&:hover": { cursor: "pointer"} }} onClick={() => navigate("/dashboard")}>
+      <Box sx={{ position: "fixed" }}>
+        <Typography variant="h5" fontWeight="bold" sx={{ pb: 3, pl:1,  pt: 2, color: lightBlue[400], "&:hover": { cursor: "pointer"} }} onClick={() => navigate("/dashboard")}>
           Investi
         </Typography>
 

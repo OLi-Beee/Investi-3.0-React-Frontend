@@ -12,6 +12,7 @@ import DashboardSidebar from "../../components/DashboardSidebar";
 import { onAuthStateChanged } from "firebase/auth";
 import WishlistWIdget from "../../components/WishlistWidget";
 import StockChart from "../../components/stockChart";
+import StockAnalysisModal from "../../components/AnalysisModal";
 
 // Register chart.js modules
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -36,15 +37,12 @@ export default function DashboardPage() {
   const [userId, setUserId] = useState("");
   const [wishlist, setWishlist] = useState(null);
   const [candleSticksData, setCandleSticksData] = useState([]);
+  const [openAnalysisModal, setOpenAnalysisModal] = useState(false);
+  const [aiAnalysis, setAiAnalysy] = useState([]);
 
 
   // ------------------ use navigate  ------------------
   const navigate = useNavigate();
-
-  
-  // ------------------ perform analysis ---------------
-
-
 
   //-------- get date from 1 year ago -------------
   const getDate365DaysAgo = () => {
@@ -257,6 +255,23 @@ export default function DashboardPage() {
     }
   }
 
+  //----------------- perform analysis ----------------
+  const getAiAnalysis = async (ticker) => {
+    const url = `http://localhost:3001/analysis?ticker=${ticker}`;
+
+    const response = await fetch(url);
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.log(response.status, result.message);
+      return;
+    }
+
+    setAiAnalysy(result.data);
+    console.log(response.status, result.message);
+
+  }
+
 
   //----------------- useEffects ------------------
 
@@ -364,6 +379,10 @@ export default function DashboardPage() {
                     <Button
                         variant="outlined"
                         sx={{ color: black, borderColor: lightBlue[900], textTransform: "none", background: lightBlue[500] }}
+                        onClick={() => {
+                          setOpenAnalysisModal(true);
+                          getAiAnalysis(currentStock)
+                        }}
                       >
                         View AI Analysis
                       </Button>
@@ -376,15 +395,14 @@ export default function DashboardPage() {
                         Add to Wishlist
                       </Button>
                   </Box>
-
-                {/* <Typography mt={2} color="#cbd5e1">
-                  Stock Sentiment: {" "}
-                  <span style={{ color: isBullish ? "#10b981" : "#ef4444" }}>
-                    {isBullish ? "Bullish 🟢" : "Bearish 🔴"}
-                  </span>
-                </Typography> */}
-                
-                <StockChart data={candleSticksData} companyName={companyMetadata?.name} exchangeCode={companyMetadata?.exchangeCode}/> 
+                  
+                <StockChart 
+                  data={candleSticksData} 
+                  companyName={companyMetadata?.name} 
+                  exchangeCode={companyMetadata?.exchangeCode} 
+                  price={stockData?.regularMarketPrice + " " + stockData?.financialCurrency}
+                  marketPriceChange={`${stockData?.regularMarketChange?.toFixed(2) || "_"} (${stockData?.regularMarketChangePercent?.toFixed(2) || "_" }%) Today` }
+                /> 
               </Paper>
             </Box>
 
@@ -414,6 +432,7 @@ export default function DashboardPage() {
                   <Typography variant="body2"><strong>Today High</strong> <br/> {stockData?.regularMarketDayHigh ? stockData.regularMarketDayHigh.toFixed(2) : "_" }</Typography>
                   <Typography variant="body2"><strong>Today Low</strong> <br/> {stockData?.regularMarketDayLow ? stockData.regularMarketDayLow.toFixed(2) : "_"}</Typography>
                   <Typography variant="body2"><strong>Open Price</strong> <br/> {stockData?.regularMarketOpen}</Typography>
+                  <Typography variant="body2"><strong>Market Price</strong> <br/> {stockData?.regularMarketPrice}</Typography>
                   <Typography variant="body2"><strong>52 Week low</strong> <br/> {stockData?.fiftyTwoWeekLow}</Typography>
                   <Typography variant="body2"><strong>52 Week high</strong> <br/> {stockData?.fiftyTwoWeekHigh}</Typography>
                   <Typography variant="body2"><strong>52 Week range</strong> <br/> {stockData?.fiftyTwoWeekRange}</Typography>
@@ -452,6 +471,7 @@ export default function DashboardPage() {
         </Box>
       </Box>
       <WishlistWIdget wishlist={wishlist} removeFromWishlist={removeFromWishlist} handleSearch={handleSearch} ticker={currentStock} />
+      <StockAnalysisModal open={openAnalysisModal} handleClose={() => setOpenAnalysisModal(false)} result={aiAnalysis} />
     </Box>
   );
 }

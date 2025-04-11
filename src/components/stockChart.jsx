@@ -3,14 +3,13 @@ import { Box, Card, CardContent, Typography, Button, ButtonGroup } from '@mui/ma
 import { createChart } from 'lightweight-charts';
 import { blueGrey, green, grey, lightBlue, red } from '@mui/material/colors';
 
-const StockChart = ({ data, companyName, exchangeCode, ticker }) => {
+const StockChart = ({ data, companyName, exchangeCode, ticker, price, marketPriceChange }) => {
   const chartContainerRef = useRef(null);
   const [chartType, setChartType] = useState('line'); // 'line' or 'candlestick'
   const [stockLiveData, setStockLiveData] = useState([]);
 
   const getLiveStockData = async () => {
     const url = `http://localhost:3001/tiingo/livedata?ticker=${ticker}`;
-    console.log("lice stock data url", url)
 
     try {
       const response = await fetch(url)
@@ -107,7 +106,10 @@ const StockChart = ({ data, companyName, exchangeCode, ticker }) => {
             {companyName}
           </Typography>
           <Typography variant="h6" fontWeight="bold" color="white">
-            {exchangeCode}
+            {price}
+          </Typography>
+          <Typography variant="body2" color={`${marketPriceChange.startsWith("-") ? red[700] : green[700]}`}>
+            {marketPriceChange}
           </Typography>
         </Box>
 
