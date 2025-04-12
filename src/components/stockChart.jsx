@@ -6,38 +6,26 @@ import { blueGrey, green, grey, lightBlue, red } from '@mui/material/colors';
 const StockChart = ({ data, companyName, exchangeCode, ticker, price, marketPriceChange }) => {
   const chartContainerRef = useRef(null);
   const [chartType, setChartType] = useState('line'); // 'line' or 'candlestick'
-  const [stockLiveData, setStockLiveData] = useState([]);
 
-  const getLiveStockData = async () => {
-    const url = `http://localhost:3001/tiingo/livedata?ticker=${ticker}`;
-
-    try {
-      const response = await fetch(url)
-      const result = await fetch(response);
-
-      if (!response.ok) {
-        console.log("no data for ticker", ticker);
-        return;
-      }
-
-      setStockLiveData(result.data);
-      console.log("stock live data", result.data)
-      console.log(response.status, result.message, "data", result.data);
-    } catch (error) {
-      console.log(error.message);
-    }
-  }
-
-  useEffect(() => {
-    if (!ticker || stockLiveData == 0) return;
-
-    getLiveStockData(); // get live stock data on refresh
-  }, [ticker, stockLiveData])
+  const convertUnixTo12HourTime = (unixTime) => {
+    const date = new Date(unixTime * 1000); // Convert to ms
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+  
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+  
+    hours = hours % 12;
+    hours = hours ? hours : 12; // handle 0
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+  
+    return `${hours}:${minutes} ${ampm}`;
+  }  
+  
 
   useEffect(() => {
     if (!data || data.length === 0) return;
 
-    const isStockUp = data[0].close < data[data.length - 1].close;
+    const isStockUp = data[0]?.close < data[data.length - 1]?.close;
 
     const chart = createChart(chartContainerRef.current, {
       width: chartContainerRef.current.clientWidth,
@@ -52,14 +40,28 @@ const StockChart = ({ data, companyName, exchangeCode, ticker, price, marketPric
       },
       priceScale: {
         borderColor: '#71649C',
-        minBarSpacing: 0.1, // smaller = more horizontal grid lines
+        minBarSpacing: 0.1,
       },
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
         borderColor: '#71649C',
+        tickMarkFormatter: (time) => {
+          const date = new Date(time * 1000);
+          let hours = date.getHours();
+          let minutes = date.getMinutes();
+    
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          hours = hours % 12 || 12;
+          minutes = minutes < 10 ? '0' + minutes : minutes;
+    
+          return `${hours}:${minutes} ${ampm}`;
+        },
+        minBarSpacing: 2,
       },
     });
+    
+    
 
     const series =
       chartType === 'line'
@@ -69,8 +71,7 @@ const StockChart = ({ data, companyName, exchangeCode, ticker, price, marketPric
           })
         : chart.addCandlestickSeries();
 
-    const formattedData = data
-      .map(item => ({
+    const formattedData = data?.map(item => ({
         time: Math.floor(new Date(item.date).getTime() / 1000),
         open: item.open,
         high: item.high,
@@ -108,13 +109,13 @@ const StockChart = ({ data, companyName, exchangeCode, ticker, price, marketPric
       <Box display="flex" justifyContent="space-between" alignItems="center" px={2} py={1} sx={{ borderRadius: 0}}>
         <Box display="block" gap={1}>
           <Typography variant="body1" fontSize="12pt" fontWeight="" color="white">
-            {companyName}
+            { companyName || null }
           </Typography>
           <Typography variant="h6" fontWeight="bold" color="white">
-            {price}
+            { price || null }
           </Typography>
           <Typography variant="body2" color={`${marketPriceChange.startsWith("-") ? red[700] : green[700]}`}>
-            {marketPriceChange}
+            { marketPriceChange || null }
           </Typography>
         </Box>
 

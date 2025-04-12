@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Box, Button, TextField, Typography, Grid, Paper, Divider, Link } from "@mui/material";
-import { Line } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend} from "chart.js";
 import { FaSearch, FaPlus, FaRegCommentDots } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebaseConfig";
@@ -13,9 +11,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import WishlistWIdget from "../../components/WishlistWidget";
 import StockChart from "../../components/stockChart";
 import StockAnalysisModal from "../../components/AnalysisModal";
-
-// Register chart.js modules
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+import { getCurrentDate, isStockMarketOpen } from "../../util/apis";
 
 // ------------------ Color Variables ------------------
 const darkGray = "#0f172a";
@@ -43,7 +39,7 @@ export default function DashboardPage() {
 
   // ------------------ use navigate  ------------------
   const navigate = useNavigate();
-
+  
   //-------- get date from 1 year ago -------------
   const getDate365DaysAgo = () => {
     const today = new Date();
@@ -65,27 +61,33 @@ export default function DashboardPage() {
     const response = await fetch(url);
     const result = await response.json();
 
+    if (!response.ok) {
+      console.log("Status", response.status, result.message);
+      return;
+    }
+
     setCandleSticksData(result.data);
     console.log("status", response.status, result.message);
   }
 
   // ------------------ Search ------------------
-  const handleSearch = async (stock) => {
-    if (!stock) return;
+  const handleSearch = async (ticker) => {
+    if (!ticker) return;
 
     //write save last searched stock
-    if (!userId) {
+    if (!ticker) {
       console.log("no user id found");
       return;
     }
     
     /**
-     * call get stock data, if we get stock data, then
-     * we automatically call all other functions to get 
-     * rest of stock statistics. see the getStockData function.
+     * call get stock data, if we get stock data
      */
-    getStockData(stock); 
-    setCurrentStock(stock);
+    getStockData(ticker); 
+    getCandleSticks(ticker, getDate365DaysAgo());
+    getCompanyMetadata(ticker);
+    getNews(ticker)
+    setCurrentStock(ticker);
     setStock(""); 
 
   };
@@ -183,12 +185,16 @@ export default function DashboardPage() {
 
   // ------------------ Company Metadata ------------------
   const getCompanyMetadata = async (ticker) => {
+    if (!ticker) return;
+    
     try {
       const response = await fetch(`http://localhost:3001/tiingo/company-metadata?ticker=${ticker}`);
       const result = await response.json();
 
       if (!response.ok){
         console.log("Status:", response.status, response.statusText);
+        window.location.reload();
+        return;
       }
 
       console.log("Status:", response.status, response.statusText, result.message);
@@ -206,14 +212,13 @@ export default function DashboardPage() {
       return;
     }
 
-    const startDate = getDate365DaysAgo(); // get date from 1 year ago
-
     try {
       const response = await fetch(`http://localhost:3001/yf/stockdata?ticker=${ticker}`);
       const result = await response.json();
 
       if (!response.ok) {
         console.log(response.status, response.statusText, result.message);
+        window.location.reload()
         return;
       }
       
@@ -221,12 +226,10 @@ export default function DashboardPage() {
        * If response is ok, call all other functions to get stock stats
        * save the ticker if we got a response.
       **/
-      setStockData(result.data.body[0]); 
-      getCandleSticks(ticker, startDate);
-      getCompanyMetadata(ticker);
-      getNews(stock)
+      setStockData(result?.data?.body[0]); 
       saveLastSearch(userId, ticker);
       console.log(response.status, response.statusText, result.message);
+     
 
     } catch (error){
       console.log(error);
@@ -281,6 +284,26 @@ export default function DashboardPage() {
 
 
   //----------------- useEffects ------------------
+  //get candlesticks live
+  useEffect(() => {
+    if (!currentStock) return;
+
+    const startDate = getDate365DaysAgo();
+
+    // Fetch immediately if market is open
+    if (isStockMarketOpen()) {
+      getCandleSticks(currentStock, startDate);
+    }
+
+    const interval = setInterval(() => {
+      if (isStockMarketOpen()) {
+        getCandleSticks(currentStock, startDate);
+      }
+    }, 60000); // every 1 minute
+
+    return () => clearInterval(interval);
+  }, [currentStock]);
+
 
   //get user on auth state change
   useEffect(() => {
@@ -308,7 +331,6 @@ export default function DashboardPage() {
         if (snapshot.exists()) {
           const ticker = snapshot.val();
           setCurrentStock(ticker);
-          console.log("Last searched ticker:", ticker);
           getCandleSticks(ticker, startDate);
           getStockData(ticker);
           getNews(ticker);
@@ -407,8 +429,8 @@ export default function DashboardPage() {
                   data={candleSticksData} 
                   companyName={companyMetadata?.name} 
                   exchangeCode={companyMetadata?.exchangeCode} 
-                  price={stockData?.regularMarketPrice + " " + stockData?.financialCurrency}
-                  marketPriceChange={`${stockData?.regularMarketChange?.toFixed(2) || "_"} (${stockData?.regularMarketChangePercent?.toFixed(2) || "_" }%) Today` }
+                  price={stockData?.regularMarketPrice?.toFixed(2) + " USD"}
+                  marketPriceChange={`${stockData?.regularMarketChange?.toFixed(2)} (${stockData?.regularMarketChangePercent?.toFixed(2)}%) Today` }
                 /> 
               </Paper>
             </Box>
