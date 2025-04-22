@@ -351,8 +351,6 @@ export default function DashboardPage() {
     fetchWishlist();
   }, [userId]);
   
-  
-
 
   // ------------------ JSX ------------------
   return (
@@ -425,13 +423,17 @@ export default function DashboardPage() {
                       </Button>
                   </Box>
                   
-                <StockChart 
-                  data={candleSticksData} 
-                  companyName={companyMetadata?.name} 
-                  exchangeCode={companyMetadata?.exchangeCode} 
-                  price={stockData?.regularMarketPrice?.toFixed(2) + " USD"}
-                  marketPriceChange={`${stockData?.regularMarketChange?.toFixed(2)} (${stockData?.regularMarketChangePercent?.toFixed(2)}%) Today` }
-                /> 
+                  {stockData?.regularMarketPrice !== undefined && stockData?.regularMarketChange !== undefined && stockData?.regularMarketChangePercent !== undefined ? (
+                    <StockChart 
+                      data={candleSticksData} 
+                      companyName={stockData?.shortName} 
+                      exchangeCode={companyMetadata?.exchangeCode} 
+                      price={stockData?.regularMarketPrice}
+                      marketPriceChange={`${stockData.regularMarketChange.toFixed(2)} (${stockData.regularMarketChangePercent.toFixed(2)}%) Today`}
+                    />
+                  ) : (
+                    <Typography variant="body2" color="gray">Loading stock chart...</Typography>
+                  )}
               </Paper>
             </Box>
 
@@ -499,7 +501,7 @@ export default function DashboardPage() {
           </Box>
         </Box>
       </Box>
-      <WishlistWIdget wishlist={wishlist} removeFromWishlist={removeFromWishlist} handleSearch={handleSearch} ticker={currentStock} />
+      <WishlistWIdget wishlist={wishlist} removeFromWishlist={removeFromWishlist} handleSearch={handleSearch} ticker={currentStock} marketChange={stockData?.regularMarketChange} />
       <StockAnalysisModal open={openAnalysisModal} handleClose={() => setOpenAnalysisModal(false)} result={aiAnalysis} />
     </Box>
   );

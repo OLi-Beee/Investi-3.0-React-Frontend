@@ -6,8 +6,10 @@ import { useEffect, useState } from "react";
 const black = "#000000";
 const white = "#ffffff";
 
-const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch }) => {
+const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch, marketChange }) => {
   const [stockData, setStockData] = useState([]);
+  const [stockIsUp, setStockIsUp] = useState(true);
+  
 
   const getLiveStockData = async (ticker) => {
     if (!ticker) return;
@@ -43,8 +45,16 @@ const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch }) => {
 
   const getPriceForTicker = (ticker) => {
     const stock = stockData.find(item => item.ticker === ticker);
-    return stock ? "$" + stock.tngoLast : "Loading...";
+    return stock ? stock.tngoLast + " USD" : "Loading...";
   };
+
+  // useEffect(() => {
+    
+  //   if (marketChange) {
+  //     console.log("market change", marketChangemarketChange.startsWith("-"))
+  //     setStockIsUp(true);
+  //   }
+  // }, [marketChange])
 
   return (
     <Paper
@@ -96,7 +106,7 @@ const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch }) => {
               </Typography>
             </Box>
             <Box mt={0}>
-              <Typography variant="body2" color={lightBlue[500]}>
+              <Typography variant="body2" color={marketChange}>
                 {getPriceForTicker(ticker)}
               </Typography>
             </Box>

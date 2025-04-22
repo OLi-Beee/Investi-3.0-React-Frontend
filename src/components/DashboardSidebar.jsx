@@ -44,6 +44,7 @@ function DashboardSidebar() {
             Chat
           </Button>
           <Button
+            onClick={() => navigate("/dashboard/news")}
             sx={{ justifyContent: "flex-start", color: "#cbd5e1" }}
           >
             News

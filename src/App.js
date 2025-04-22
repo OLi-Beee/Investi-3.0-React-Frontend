@@ -8,6 +8,8 @@ import ChatPage from "./pages/dashboard/chat";
 import { auth } from './firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useState, useEffect } from 'react';
+import News from './pages/dashboard/news';
+import AssistantPage from './assistant/AssistantPage';
 
 function App() {
   const [userIsAuth, setUserIsAuth] = useState(false);
@@ -37,6 +39,8 @@ function App() {
       <Route path="/signup" element={userIsAuth ? <DashboardPage /> : <Signup />} />
       <Route path="/dashboard" element={userIsAuth ? <DashboardPage /> : <SignIn />} />
       <Route path="/dashboard/chat" element={userIsAuth ? <ChatPage /> : <SignIn />} />
+      <Route path="/dashboard/news" element={userIsAuth ? <News /> : <SignIn />} />
+      <Route path="/dashboard/assistant" element={userIsAuth ? <AssistantPage /> : <SignIn />} />
     </Routes>
   );
 }

@@ -107,18 +107,25 @@ const StockChart = ({ data, companyName, exchangeCode, ticker, price, marketPric
       }}
     >
       <Box display="flex" justifyContent="space-between" alignItems="center" px={2} py={1} sx={{ borderRadius: 0}}>
-        <Box display="block" gap={1}>
-          <Typography variant="body1" fontSize="12pt" fontWeight="" color="white">
-            { companyName || null }
-          </Typography>
-          <Typography variant="h6" fontWeight="bold" color="white">
-            { price || null }
-          </Typography>
-          <Typography variant="body2" color={`${marketPriceChange.startsWith("-") ? red[700] : green[700]}`}>
-            { marketPriceChange || null }
-          </Typography>
-        </Box>
-
+        {
+          companyName && price && marketPriceChange && (
+            <Box display="block" gap={1}>
+              <Typography variant="body1" fontSize="12pt" fontWeight="" color="white">
+                { companyName || "" }
+              </Typography>
+              <Typography variant="h6" fontWeight="bold" color="white">
+                {typeof price ? price + " USD" : "Loading..."}
+              </Typography>
+              <Typography variant="body2" color={
+                typeof marketPriceChange === "string" && marketPriceChange.startsWith("-")
+                  ? red[700]
+                  : green[700]
+              }>
+                {marketPriceChange || "Loading..."}
+              </Typography>
+            </Box>
+          )
+        }
         <ButtonGroup variant="outlined" size="small" sx={{ borderColor: 'white' }}>
           <Button
             onClick={() => setChartType('line')}
