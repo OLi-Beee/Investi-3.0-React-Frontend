@@ -36,7 +36,7 @@ export default function Home() {
     const fetchData = async () => {
 
       try {
-        const response = await fetch(`${API_URL}/yf/stockdata?key=${rapidKey}&ticker=NVDA,AAPL,TSLA,GOOGL,VOO,SPY,NFLX,META`);        
+        const response = await fetch(`${API_URL}/yf/stockdata?ticker=NVDA,AAPL,TSLA,GOOGL,VOO,SPY,NFLX,META`);        
 
         const result = await response.json();
 
