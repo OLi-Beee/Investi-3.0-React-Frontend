@@ -26,7 +26,6 @@ export const isStockMarketOpen= (dateString) => {
   
     return !isWeekend && isMarketHours;
 }
-  
 
 // get today's date
 export const getCurrentDate = () => {

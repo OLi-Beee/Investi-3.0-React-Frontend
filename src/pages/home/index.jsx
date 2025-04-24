@@ -49,7 +49,7 @@ export default function Home() {
         console.log(response.status, response.statusText, result.message);
 
       } catch (error){
-        throw new Error(error);
+        console.log(error);
       }
 
 
