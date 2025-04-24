@@ -17,7 +17,8 @@ import { getCurrentDate, isStockMarketOpen } from "../../util/apis";
 const darkGray = "#0f172a";
 const white = "#ffffff";
 const gray = "#1e293b";
-const black = "#000000"
+const black = "#000000";
+const API_URL = process.env.REACT_APP_API_URL;
 
 export default function DashboardPage() {
 
@@ -57,7 +58,7 @@ export default function DashboardPage() {
 
   //-------------- get candlesticks -------------
   const getCandleSticks = async(ticker, startDate) => {
-    const url = `http://localhost:3001/tiingo/candlestics?ticker=${ticker}&startDate=${startDate}`;
+    const url = `${API_URL}/tiingo/candlestics?ticker=${ticker}&startDate=${startDate}`;
     const response = await fetch(url);
     const result = await response.json();
 
@@ -188,7 +189,7 @@ export default function DashboardPage() {
     if (!ticker) return;
     
     try {
-      const response = await fetch(`http://localhost:3001/tiingo/company-metadata?ticker=${ticker}`);
+      const response = await fetch(`${API_URL}/tiingo/company-metadata?ticker=${ticker}`);
       const result = await response.json();
 
       if (!response.ok){
@@ -213,7 +214,7 @@ export default function DashboardPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/yf/stockdata?ticker=${ticker}`);
+      const response = await fetch(`${API_URL}/yf/stockdata?ticker=${ticker}`);
       const result = await response.json();
 
       if (!response.ok) {
@@ -246,9 +247,9 @@ export default function DashboardPage() {
 
   // ------------------ Get News ------------------
   const getNews = async (ticker, tags) => {
-    const url = ticker ? `http://localhost:3001/tiingo/news?ticker=${ticker}` 
-                : tags ? `http://localhost:3001/tiingo/news?tags=${tags}` 
-                : `http://localhost:3001/tiingo/news`
+    const url = ticker ? `${API_URL}/tiingo/news?ticker=${ticker}` 
+                : tags ? `${API_URL}/tiingo/news?tags=${tags}` 
+                : `${API_URL}/tiingo/news`
     try {
       const response = await fetch(url);
       const result = await response.json();
@@ -267,7 +268,7 @@ export default function DashboardPage() {
 
   //----------------- perform analysis ----------------
   const getAiAnalysis = async (ticker) => {
-    const url = `http://localhost:3001/analysis?ticker=${ticker}`;
+    const url = `${API_URL}/analysis?ticker=${ticker}`;
 
     const response = await fetch(url);
     const result = await response.json();

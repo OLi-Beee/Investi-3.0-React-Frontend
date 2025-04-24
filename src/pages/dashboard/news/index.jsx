@@ -5,6 +5,8 @@ import { grey, lightBlue } from "@mui/material/colors";
 
 const white = "#ffffff";
 const black = "#000000";
+const API_URL = process.env.REACT_APP_API_URL;
+
 
 const News = () => {
     const [marketNews, setMarketNews] = useState([]);
@@ -12,7 +14,7 @@ const News = () => {
     useEffect(() => {
         // ------------------ Get News ------------------
         const getNews = async () => {
-            const url = `http://localhost:3001/tiingo/market-news`
+            const url = `${API_URL}/tiingo/market-news`
             try {
                 const response = await fetch(url);
                 const result = await response.json();

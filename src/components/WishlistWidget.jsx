@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 const black = "#000000";
 const white = "#ffffff";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch, marketChange }) => {
   const [stockData, setStockData] = useState([]);
@@ -14,7 +15,7 @@ const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch, marketChan
   const getLiveStockData = async (ticker) => {
     if (!ticker) return;
 
-    const url = `http://localhost:3001/tiingo/livedata?ticker=${ticker}`;
+    const url = `${API_URL}tiingo/livedata?ticker=${ticker}`;
 
     try {
       const response = await fetch(url);

@@ -25,6 +25,7 @@ import Footer from "../../components/Footer";
 import { Link } from "react-router-dom";
 
 const rapidKey = process.env.REACT_APP_RAPID_API_KEY;
+const API_URL = process.env.REACT_APP_API_URL;
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -35,7 +36,7 @@ export default function Home() {
     const fetchData = async () => {
 
       try {
-        const response = await fetch(`http://localhost:3001/yf/stockdata?key=${rapidKey}&ticker=NVDA,AAPL,TSLA,GOOGL,VOO,SPY,NFLX,META`);        
+        const response = await fetch(`${API_URL}/yf/stockdata?key=${rapidKey}&ticker=NVDA,AAPL,TSLA,GOOGL,VOO,SPY,NFLX,META`);        
 
         const result = await response.json();
 

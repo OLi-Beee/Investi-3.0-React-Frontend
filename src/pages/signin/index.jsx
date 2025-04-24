@@ -7,6 +7,9 @@ import { auth, googleProvider } from "../../firebaseConfig";
 import { FcGoogle } from "react-icons/fc";
 import Cookies from "js-cookie";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
+
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
