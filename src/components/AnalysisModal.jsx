@@ -2,61 +2,72 @@ import React, { useEffect, useState, useRef } from 'react';
 import { 
   Modal, Box, Typography, CircularProgress, CardContent, 
   TextField, IconButton, InputAdornment, Paper, Divider,
-  useTheme
+  useTheme, useMediaQuery
 } from '@mui/material';
 import { IoMdSend } from 'react-icons/io';
+import { FaTimes } from 'react-icons/fa';
 import { green, blue, grey, purple, teal } from '@mui/material/colors';
 
 // Enhanced modal styling - updated with green theme to match sidebar
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '57.6%',
-    transform: 'translate(-50%, -50%)',
-    width: '80%',
-    maxWidth: '72%',
-    height: '80vh',
-    maxHeight: '95vh',
-    bgcolor: '#121212', // Matching sidebar background
-    color: '#FFFFFF',
-    boxShadow: '0 8px 32px rgba(0, 128, 0, 0.2)', // Green shadow
-    borderRadius: 3,
-    overflowY: 'auto',
-    border: `2px solid ${green[700]}`, // Updated to green from blue
-    backgroundImage: 'linear-gradient(to bottom, #1a1a1a, #0d0d0d)', // Same gradient as sidebar
-    transition: 'all 0.3s ease-in-out',
-    position: 'relative',
-    '&::after': {
-      content: '""',
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      width: '1px',
-      height: '100%',
-      background: `linear-gradient(to bottom, transparent, ${green[900]}, transparent)`,
-      opacity: 0.6,
-    }
-};
-
-// Animation keyframes
-const pulseAnimation = {
-    '@keyframes pulse': {
-        '0%': { opacity: 0.6 },
-        '50%': { opacity: 1 },
-        '100%': { opacity: 0.6 }
-    }
-};
-
 const StockAnalysisModal = ({ open, handleClose, result }) => {
     const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(true);
     const [streamedText, setStreamedText] = useState('');
     const [streamComplete, setStreamComplete] = useState(false);
     const textToStream = useRef('');
     const streamIntervalRef = useRef(null);
+    const contentRef = useRef(null);
+    
+    // Style object with mobile responsiveness
+    const style = {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: isMobile ? '90%' : '80%',
+        maxWidth: isMobile ? '100%' : '72%',
+        height: isMobile ? '90vh' : '80vh',
+        maxHeight: '95vh',
+        bgcolor: '#121212',
+        color: '#FFFFFF',
+        boxShadow: '0 8px 32px rgba(0, 128, 0, 0.2)',
+        borderRadius: isMobile ? 2 : 3,
+        overflowY: 'auto',
+        border: `2px solid ${green[700]}`,
+        backgroundImage: 'linear-gradient(to bottom, #1a1a1a, #0d0d0d)',
+        transition: 'all 0.3s ease-in-out',
+        position: 'relative',
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          width: '1px',
+          height: '100%',
+          background: `linear-gradient(to bottom, transparent, ${green[900]}, transparent)`,
+          opacity: 0.6,
+        }
+    };
 
-    // Streaming function (keeping your implementation)
+    // Animation keyframes
+    const pulseAnimation = {
+        '@keyframes pulse': {
+            '0%': { opacity: 0.6 },
+            '50%': { opacity: 1 },
+            '100%': { opacity: 0.6 }
+        }
+    };
+
+    // Auto-scroll to bottom as content is streamed
+    useEffect(() => {
+        if (contentRef.current && streamedText) {
+            contentRef.current.scrollTop = contentRef.current.scrollHeight;
+        }
+    }, [streamedText]);
+
+    // Streaming function
     const simulateStreaming = (text) => {
         if (!text) return;
         
@@ -143,17 +154,20 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
             sx={{ backdropFilter: 'blur(5px)' }}
         >
             <Box sx={style}>
-                {/* Header - Updated to match sidebar green/teal theme */}
+                {/* Header with Close Button */}
                 <Box 
                     sx={{ 
-                        background: `linear-gradient(90deg, ${teal[700]}, ${green[700]})`, // Changed from blue/purple to teal/green
-                        borderTopLeftRadius: 10,
-                        borderTopRightRadius: 10,
+                        background: `linear-gradient(90deg, ${teal[700]}, ${green[700]})`,
+                        borderTopLeftRadius: isMobile ? 8 : 10,
+                        borderTopRightRadius: isMobile ? 8 : 10,
                         p: 2,
-                        mb: 3,
+                        mb: 2,
                         display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center'
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 10
                     }}
                 >
                     <Typography 
@@ -162,24 +176,49 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                             color: 'white', 
                             fontWeight: 600, 
                             textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                            letterSpacing: 1
+                            letterSpacing: 1,
+                            fontSize: isMobile ? '1.2rem' : '1.5rem'
                         }}
                     >
                         AI Stock Analysis
                     </Typography>
+                    
+                    {/* Close Button */}
+                    <IconButton
+                        onClick={handleClose}
+                        sx={{
+                            color: 'white',
+                            bgcolor: 'rgba(0,0,0,0.2)',
+                            '&:hover': {
+                                bgcolor: 'rgba(255,255,255,0.1)',
+                            },
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <FaTimes />
+                    </IconButton>
                 </Box>
 
-                {/* Content Area */}
-                <Box sx={{ mb: 2, px: { xs: 2, sm: 4 }, maxHeight: '65vh', overflowY: 'auto' }}>
+                {/* Content Area with Auto-scroll */}
+                <Box 
+                    ref={contentRef}
+                    sx={{ 
+                        mb: 2, 
+                        px: { xs: 2, sm: 4 }, 
+                        maxHeight: isMobile ? '65vh' : '62vh', 
+                        overflowY: 'auto',
+                        scrollBehavior: 'smooth'
+                    }}
+                >
                     <Paper 
                         elevation={0} 
                         sx={{ 
-                            bgcolor: 'rgba(20, 30, 20, 0.6)', // Adjusted to have a slight green tint
+                            bgcolor: 'rgba(20, 30, 20, 0.6)',
                             color: 'white',
                             borderRadius: 2,
                             p: 3,
                             boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                            border: `1px solid ${green[900]}`, // Added green border to match sidebar
+                            border: `1px solid ${green[900]}`,
                         }}
                     >
                         {loading ? (
@@ -225,7 +264,7 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                                             marginTop: '20px', 
                                             marginBottom: '12px', 
                                             fontSize: '18px',
-                                            color: teal[300], // Kept teal for headings, matches sidebar
+                                            color: teal[300],
                                             fontWeight: 600
                                         },
                                         '& p': { 
@@ -233,14 +272,14 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                                             color: grey[100]
                                         },
                                         '& a': { 
-                                            color: green[400], // Changed from blue to green
+                                            color: green[400],
                                             textDecoration: 'none',
                                             transition: 'all 0.2s ease'
                                         },
                                         '& a:hover': { 
                                             textDecoration: 'underline',
-                                            color: teal[300], // Changed from blue to teal
-                                            transform: 'translateX(2px)', // Added subtle movement on hover
+                                            color: teal[300],
+                                            transform: 'translateX(2px)',
                                         },
                                         '& img': { 
                                             maxHeight: '16px', 
@@ -257,18 +296,14 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                                             textShadow: '0 0 10px rgba(255,0,0,0.3)',
                                             fontWeight: '700 !important'
                                         },
+                                        // Removed separate box for news section
                                         '& .sources-container, & div[style*="margin-top: 20px"]': {
-                                            marginTop: '25px',
-                                            padding: '15px',
-                                            background: 'rgba(0, 7, 0, 0.92)', // Green tinted background
-                                            borderRadius: '8px',
-                                            border: `1px solid ${green[900]}` // Green border
+                                            marginTop: '25px'
                                         },
                                         '& a div': { // Target each source card
-                                            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                                            transition: 'transform 0.2s ease',
                                             '&:hover': {
-                                                transform: 'translateY(-3px)',
-                                                boxShadow: `0 6px 10px rgba(0,128,0,0.2)` // Green shadow
+                                                transform: 'translateY(-3px)'
                                             }
                                         }
                                     }}
@@ -277,7 +312,7 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                                 
                                 {streamComplete && (
                                     <>
-                                        <Divider sx={{ my: 3, bgcolor: green[900], opacity: 0.7 }} /> {/* Changed to green divider */}
+                                        <Divider sx={{ my: 3, bgcolor: green[900], opacity: 0.7 }} />
                                         <Typography 
                                             variant="caption" 
                                             sx={{ 
@@ -285,10 +320,10 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                                                 fontStyle: 'italic',
                                                 fontSize: '11px',
                                                 display: 'block',
-                                                background: 'rgba(0,30,0,0.2)', // Green tinted background
+                                                background: 'rgba(0,30,0,0.2)',
                                                 p: 1.5,
                                                 borderRadius: 1,
-                                                border: `1px solid ${green[900]}` // Changed to green border
+                                                border: `1px solid ${green[900]}`
                                             }}
                                         >
                                             Disclaimer: The past performance of a security, an industry, a sector, a market, a financial product, a trading strategy or the individual trade does not guarantee any future results or returns. As an investor, you yourself bear the full responsibility for your individual investment decisions.
@@ -300,16 +335,16 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                     </Paper>
                 </Box>
 
-                {/* Input Area - updated to match sidebar green theme */}
+                {/* Input Area */}
                 {streamComplete && (
                     <Box 
                         display="flex" 
                         alignItems="center" 
                         gap={1} 
-                        px={4}
+                        px={isMobile ? 2 : 4}
                         position="sticky"
                         bottom={10}
-                        mt={3}
+                        mt={isMobile ? 2 : 3}
                     >
                         <TextField
                             fullWidth
@@ -320,12 +355,12 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                             variant="outlined"
                             sx={{
                                 '& .MuiInputBase-root': {
-                                    borderRadius: '10px', // Matching sidebar button radius
+                                    borderRadius: '10px',
                                     paddingRight: '1.3em',
                                     color: 'white',
-                                    backgroundColor: 'rgba(0, 30, 0, 0.2)', // Green tinted background
+                                    backgroundColor: 'rgba(0, 30, 0, 0.2)',
                                     backdropFilter: 'blur(4px)',
-                                    height: '48px',
+                                    height: isMobile ? '44px' : '48px',
                                     transition: 'all 0.2s',
                                     boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
                                 },
