@@ -11,3 +11,17 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+@media screen and (max-width: 600px) {
+  .MuiTypography-root {
+    font-size: 90% !important; /* Reduce all text by 10% on mobile */
+  }
+  
+  .MuiTypography-h5, .MuiTypography-h6 {
+    font-size: 85% !important; /* Reduce headings by 15% */
+  }
+  
+  .MuiButton-root {
+    font-size: 85% !important; /* Reduce button text */
+  }
+}
