@@ -7,18 +7,33 @@ import {
 import { IoMdSend } from 'react-icons/io';
 import { FaTimes } from 'react-icons/fa';
 import { green, blue, grey, purple, teal } from '@mui/material/colors';
+import OpenAI from "openai";
 
-// Enhanced modal styling - updated with green theme to match sidebar
-const StockAnalysisModal = ({ open, handleClose, result }) => {
+// Enhanced modal styling with follow-up question functionality
+const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(true);
     const [streamedText, setStreamedText] = useState('');
     const [streamComplete, setStreamComplete] = useState(false);
+    const [followUpLoading, setFollowUpLoading] = useState(false);
+    const [conversation, setConversation] = useState([]);
     const textToStream = useRef('');
     const streamIntervalRef = useRef(null);
     const contentRef = useRef(null);
+    
+    // OpenAI client configuration
+    const ORG_ID = process.env.REACT_APP_OPENAI_ORG_ID;
+    const PROJ_ID = process.env.REACT_APP_OPENAI_PROJECT_ID;
+    const API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
+  
+    const client = new OpenAI({
+      apiKey: API_KEY,
+      organization: ORG_ID,
+      project: PROJ_ID,
+      dangerouslyAllowBrowser: true
+    });
     
     // Style object with mobile responsiveness
     const style = {
@@ -65,7 +80,7 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
         if (contentRef.current && streamedText) {
             contentRef.current.scrollTop = contentRef.current.scrollHeight;
         }
-    }, [streamedText]);
+    }, [streamedText, conversation]);
 
     // Streaming function
     const simulateStreaming = (text) => {
@@ -115,6 +130,7 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
             setLoading(true);
             setStreamedText('');
             setStreamComplete(false);
+            setConversation([]);
         }
         return () => {
             if (streamIntervalRef.current) {
@@ -127,9 +143,18 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
         if (result && typeof result === 'string') {
             setLoading(false);
             simulateStreaming(result);
+            // Store the initial analysis as context
+            setConversation([{
+                role: "system",
+                content: `You are a financial analyst assistant analyzing ${stock}. This was your initial analysis: ${result}`
+            }]);
         } else if (result && result.analysis) {
             setLoading(false);
             simulateStreaming(result.analysis);
+            setConversation([{
+                role: "system",
+                content: `You are a financial analyst assistant analyzing ${stock}. This was your initial analysis: ${result.analysis}`
+            }]);
         } else if (result) {
             setLoading(false);
             const combinedText = [
@@ -138,13 +163,153 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                 `Fundamental Analysis: ${result.fundamental_analysis || ''}`
             ].join('\n\n');
             simulateStreaming(combinedText);
+            setConversation([{
+                role: "system",
+                content: `You are a financial analyst assistant analyzing ${stock}. This was your initial analysis: ${combinedText}`
+            }]);
         }
-    }, [result]);
+    }, [result, stock]);
 
-    const handleSend = () => {
-        if (!input.trim()) return;
-        console.log('User asked:', input);
+    // Handle sending follow-up questions to OpenAI
+    const handleSend = async () => {
+        if (!input.trim() || followUpLoading) return;
+        
+        const userQuestion = input.trim();
         setInput('');
+        setFollowUpLoading(true);
+        
+        // Add user question to conversation history
+        const updatedConversation = [
+            ...conversation,
+            { role: "user", content: userQuestion }
+        ];
+        
+        // Update conversation state
+        setConversation(updatedConversation);
+        
+        // Create follow-up question element
+        const followUpQuestion = document.createElement('div');
+        followUpQuestion.innerHTML = `
+            <div style="margin-top: 20px; margin-bottom: 15px; padding: 10px 15px; 
+                 background-color: rgba(0, 0, 0, 0.2); border-radius: 8px; 
+                 border-left: 3px solid ${teal[500]};">
+                <p style="font-weight: bold; color: ${grey[300]}; margin-bottom: 5px;">Follow-up question:</p>
+                <p style="color: ${teal[300]};">${userQuestion}</p>
+            </div>
+        `;
+        contentRef.current.querySelector('div').appendChild(followUpQuestion);
+        
+        // Create loading indicator
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.id = 'follow-up-loading';
+        loadingIndicator.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+                <div style="width: 18px; height: 18px; border: 2px solid ${green[500]}; border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite;"></div>
+                <p style="color: ${grey[400]}; font-style: italic;">Processing...</p>
+            </div>
+            <style>
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+            </style>
+        `;
+        contentRef.current.querySelector('div').appendChild(loadingIndicator);
+        
+        // Scroll to bottom to show loading indicator
+        contentRef.current.scrollTop = contentRef.current.scrollHeight;
+        
+        try {
+            // Send to OpenAI API with streaming response
+            const stream = await client.chat.completions.create({
+                model: "gpt-4o",
+                messages: updatedConversation,
+                stream: true,
+            });
+            
+            // Remove loading indicator
+            const loadingElement = document.getElementById('follow-up-loading');
+            if (loadingElement) loadingElement.remove();
+            
+            // Create answer container
+            const answerContainer = document.createElement('div');
+            answerContainer.style.marginBottom = '20px';
+            answerContainer.style.padding = '12px 15px';
+            // Change background to match main content area instead of green
+            answerContainer.style.backgroundColor = 'transparent'; 
+            answerContainer.style.borderLeft = `3px solid ${teal[600]}`;
+            answerContainer.style.borderRadius = '0';
+            answerContainer.style.borderBottom = `1px solid ${green[900]}`;
+            answerContainer.style.borderTop = `1px solid ${green[900]}`;
+            contentRef.current.querySelector('div').appendChild(answerContainer);
+            
+            let assistantReply = "";
+            
+            // Process streaming response
+            for await (const chunk of stream) {
+                const content = chunk.choices[0]?.delta?.content;
+                if (content) {
+                    assistantReply += content;
+                    
+                    // Update answer container with formatted HTML
+                    answerContainer.innerHTML = formatFollowUpResponse(assistantReply);
+                    
+                    // Scroll to show latest content
+                    contentRef.current.scrollTop = contentRef.current.scrollHeight;
+                }
+            }
+            
+            // Add assistant response to conversation
+            setConversation([
+                ...updatedConversation,
+                { role: "assistant", content: assistantReply }
+            ]);
+            
+        } catch (error) {
+            console.error("Error fetching follow-up response:", error);
+            
+            // Remove loading indicator
+            const loadingElement = document.getElementById('follow-up-loading');
+            if (loadingElement) loadingElement.remove();
+            
+            // Create error message
+            const errorContainer = document.createElement('div');
+            errorContainer.innerHTML = `
+                <div style="margin-bottom: 20px; padding: 10px 15px; background-color: rgba(255, 0, 0, 0.1); border-radius: 8px; border: 1px solid #ff5252;">
+                    <p style="color: #ff5252;">Sorry, I encountered an error processing your question. Please try again.</p>
+                </div>
+            `;
+            contentRef.current.querySelector('div').appendChild(errorContainer);
+            
+        } finally {
+            setFollowUpLoading(false);
+            contentRef.current.scrollTop = contentRef.current.scrollHeight;
+        }
+    };
+    
+    // Format follow-up response with the same styling as main analysis
+    const formatFollowUpResponse = (text) => {
+        // Apply similar styling as the main analysis
+        let formattedText = text
+            // Headings
+            .replace(/#{3}\s*(.*)/g, `<h3 style="color: ${teal[300]}; font-weight: 600; margin-top: 15px; margin-bottom: 10px; font-size: 18px;">$1</h3>`)
+            // Bold
+            .replace(/\*\*(.*?)\*\*/g, `<strong>$1</strong>`)
+            // Italics
+            .replace(/\*(.*?)\*/g, `<em style="color: ${grey[300]};">$1</em>`)
+            // Links
+            .replace(/\[(.*?)\]\((.*?)\)/g, `<a href="$2" style="color: ${green[400]}; text-decoration: none;" target="_blank">$1</a>`)
+            // Line breaks
+            .replace(/\n/g, '<br>');
+            
+        return formattedText;
+    };
+
+    // Handle key press (Enter to send)
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
     };
 
     return (
@@ -180,7 +345,7 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                             fontSize: isMobile ? '1.2rem' : '1.5rem'
                         }}
                     >
-                        AI Stock Analysis
+                        AI Stock Analysis {stock ? `- ${stock.toUpperCase()}` : ''}
                     </Typography>
                     
                     {/* Close Button */}
@@ -296,11 +461,11 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                                             textShadow: '0 0 10px rgba(255,0,0,0.3)',
                                             fontWeight: '700 !important'
                                         },
-                                        // Removed separate box for news section
+                                        // Integrated news section
                                         '& .sources-container, & div[style*="margin-top: 20px"]': {
                                             marginTop: '25px'
                                         },
-                                        '& a div': { // Target each source card
+                                        '& a div': { 
                                             transition: 'transform 0.2s ease',
                                             '&:hover': {
                                                 transform: 'translateY(-3px)'
@@ -335,7 +500,7 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                     </Paper>
                 </Box>
 
-                {/* Input Area */}
+                {/* Input Area for Follow-up Questions */}
                 {streamComplete && (
                     <Box 
                         display="flex" 
@@ -351,8 +516,10 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                             placeholder="Ask a follow-up question..."
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
+                            onKeyPress={handleKeyPress}
                             size="small"
                             variant="outlined"
+                            disabled={followUpLoading}
                             sx={{
                                 '& .MuiInputBase-root': {
                                     borderRadius: '10px',
@@ -386,18 +553,23 @@ const StockAnalysisModal = ({ open, handleClose, result }) => {
                                     <InputAdornment position="end">
                                         <IconButton 
                                             onClick={handleSend} 
-                                            edge="end" 
+                                            edge="end"
+                                            disabled={followUpLoading || !input.trim()}
                                             sx={{ 
                                                 p: 1.2, 
-                                                color: green[400],
+                                                color: followUpLoading ? grey[600] : green[400],
                                                 bgcolor: 'rgba(0,0,0,0.2)',
                                                 '&:hover': {
-                                                    bgcolor: 'rgba(0,100,0,0.3)',
+                                                    bgcolor: followUpLoading ? 'rgba(0,0,0,0.2)' : 'rgba(0,100,0,0.3)',
                                                 },
                                                 transition: 'all 0.2s'
                                             }}
                                         >
-                                            <IoMdSend />
+                                            {followUpLoading ? (
+                                                <CircularProgress size={16} sx={{ color: grey[500] }} />
+                                            ) : (
+                                                <IoMdSend />
+                                            )}
                                         </IconButton>
                                     </InputAdornment>
                                 ),
