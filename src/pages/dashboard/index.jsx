@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Box, Button, TextField, Typography, Grid, Paper, Divider, Link } from "@mui/material";
-import { FaSearch, FaPlus, FaRegCommentDots } from "react-icons/fa";
+import { Box, Button, TextField, Typography, Grid, Paper, Divider, Link, InputAdornment, useMediaQuery, useTheme } from "@mui/material";
+import { FaSearch, FaPlus, FaRegCommentDots, FaChartLine } from "react-icons/fa";
+import { IoAnalyticsSharp, IoStatsChartSharp } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebaseConfig";
 import { red, green, blue, lightBlue, cyan, teal, lightGreen, grey } from '@mui/material/colors';
@@ -14,13 +15,16 @@ import StockAnalysisModal from "../../components/AnalysisModal";
 import { getCurrentDate, isStockMarketOpen } from "../../util/apis";
 
 // ------------------ Color Variables ------------------
-const darkGray = "#0f172a";
+const darkGray = "#121212";
 const white = "#ffffff";
-const gray = "#1e293b";
+const darkBg = "#0d0d0d";
 const black = "#000000";
 const API_URL = process.env.REACT_APP_API_URL;
 
 export default function DashboardPage() {
+  const theme = useTheme();
+  const isMediumScreen = useMediaQuery(theme.breakpoints.down('lg'));
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   // ------------------ State ------------------
   const [stock, setStock] = useState("");
@@ -36,7 +40,6 @@ export default function DashboardPage() {
   const [candleSticksData, setCandleSticksData] = useState([]);
   const [openAnalysisModal, setOpenAnalysisModal] = useState(false);
   const [aiAnalysis, setAiAnalysy] = useState([]);
-
 
   // ------------------ use navigate  ------------------
   const navigate = useNavigate();
@@ -55,7 +58,6 @@ export default function DashboardPage() {
     return `${year}-${month}-${day}`;
   };
   
-
   //-------------- get candlesticks -------------
   const getCandleSticks = async(ticker, startDate) => {
     const url = `${API_URL}/tiingo/candlestics?ticker=${ticker}&startDate=${startDate}`;
@@ -90,7 +92,6 @@ export default function DashboardPage() {
     getNews(ticker)
     setCurrentStock(ticker);
     setStock(""); 
-
   };
 
   //---------- hanle search on key down ----------
@@ -101,7 +102,6 @@ export default function DashboardPage() {
     }
   };
   
-
   // -------------------- save last search ------------------
   const saveLastSearch = async (userId, stock) => {
     try {
@@ -160,7 +160,6 @@ export default function DashboardPage() {
     }
   };
 
-
   //------------- remove from wishlish -------------
   const removeFromWishlist = async (tickerToRemove) => {
     if (!userId) return;
@@ -183,7 +182,6 @@ export default function DashboardPage() {
     }
   };
   
-
   // ------------------ Company Metadata ------------------
   const getCompanyMetadata = async (ticker) => {
     if (!ticker) return;
@@ -230,8 +228,6 @@ export default function DashboardPage() {
       setStockData(result?.data?.body[0]); 
       saveLastSearch(userId, ticker);
       console.log(response.status, response.statusText, result.message);
-     
-
     } catch (error){
       console.log(error);
     }
@@ -280,9 +276,7 @@ export default function DashboardPage() {
 
     setAiAnalysy(result.data);
     console.log(response.status, result.message);
-
   }
-
 
   //----------------- useEffects ------------------
   //get candlesticks live
@@ -305,7 +299,6 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, [currentStock]);
 
-
   //get user on auth state change
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -317,7 +310,6 @@ export default function DashboardPage() {
   
     return () => unsubscribe(); // Clean up listener
   }, []);
-
 
   useEffect(() => {
     const startDate = getDate365DaysAgo();
@@ -352,46 +344,98 @@ export default function DashboardPage() {
     fetchWishlist();
   }, [userId]);
   
-
   // ------------------ JSX ------------------
   return (
-    <Box sx={{ display: "grid", gridTemplateColumns:"15% 65% 20%" , minHeight: "100vh", backgroundColor: black, color: "white" }}>
+    <Box sx={{ 
+      display: "grid", 
+      gridTemplateColumns: isSmallScreen 
+        ? "1fr" 
+        : isMediumScreen 
+          ? "220px 1fr" 
+          : "220px minmax(0, 4fr) minmax(0, 1fr)", // Adjust the ratio here
+      gridAutoFlow: "column", // Force elements to stay in their column
+      height: "100vh",
+      backgroundColor: darkBg, 
+      color: "white", 
+      background: 'linear-gradient(to bottom, #121212, #0d0d0d)',
+      overflow: "hidden"
+    }}>
 
-      {/* Sidebar */}
-     <DashboardSidebar />
+      {/* Sidebar - Hidden on mobile */}
+      {!isSmallScreen && <DashboardSidebar />}
 
       {/* Main Content */}
-      <Box sx={{ flex: 1, px: 0.5, background: black }}>
+      <Box sx={{ 
+        px: { xs: 1, sm: 2, md: 3 }, 
+        py: 2, 
+        mx: "auto",
+        overflow: "auto",
+        height: "100vh",
+        width: "auto", // Change from 100% to auto to prevent overflow
+        maxWidth: "91%", // Ensure it doesn't exceed its container
+      }}>
 
         {/* Search Bar */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5, mt:0.5 }}>
+        <Box sx={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 0.5, 
+          mb: 3, 
+          mt: 1,
+          background: 'rgba(20, 30, 20, 0.3)',
+          borderRadius: '10px',
+          border: `1px solid ${grey[900]}`,
+          overflow: 'hidden',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+        }}>
           <TextField
             fullWidth
             placeholder="Search for a stock (e.g., TSLA, AAPL)"
             value={stock}
             onChange={(e) => setStock(e.target.value)}
             onKeyDown={(e) => handleSearchOnEnter(e)}
-            InputProps={{
-              // startAdornment: <FaSearch style={{ marginRight: 10 }} />,
-              style: { backgroundColor: black, color: "white", borderRadius: 0 },
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 0,
+                '& fieldset': { border: 'none' }
+              },
+              '& .MuiInputBase-input': {
+                color: grey[100],
+                fontSize: '1rem',
+                padding: { xs: '10px 12px', sm: '14px 16px' },
+                '&::placeholder': {
+                  color: grey[500],
+                  opacity: 1
+                }
+              },
+              backgroundColor: 'transparent'
             }}
-            variant="outlined"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <FaSearch style={{ color: teal[300] }} />
+                </InputAdornment>
+              ),
+            }}
           />
           <Button
             variant="contained"
             sx={{
-              backgroundColor: black,
+              backgroundColor: green[700],
               color: white,
-              px: 2,
-              py: 2,
+              px: 3,
+              py: 1.6,
               borderRadius: 0,
-              "&:hover": { backgroundColor: lightBlue[500]},
+              "&:hover": { 
+                backgroundColor: green[600],
+                transform: 'translateX(2px)'
+              },
               textTransform: "none",
+              transition: 'all 0.2s ease'
             }}
             onClick={() => handleSearch(stock)}
           >
-            {/* Search */}
-            <FaSearch fontSize="14pt" color={white}/>
+            Search
           </Button>
         </Box>
 
@@ -401,109 +445,203 @@ export default function DashboardPage() {
 
             {/* Stock Chart */}
             <Box>
-              <Paper sx={{ py:3, px:2, backgroundColor: black, minHeight: "26em", borderRadius: 0 }}>
-                 {/* action buttons */}
-                  <Box sx={{ display: "flex", justifyContent: "end" , gap: 1 }}>
-                    <Button
-                        variant="outlined"
-                        sx={{ color: black, borderColor: lightBlue[900], textTransform: "none", background: lightBlue[500] }}
-                        onClick={() => {
-                          setOpenAnalysisModal(true);
-                          getAiAnalysis(currentStock)
-                        }}
-                      >
-                        View AI Analysis
-                      </Button>
-                      <Button
-                        startIcon={<FaPlus />}
-                        variant="outlined"
-                        sx={{ color: "#cbd5e1", borderColor: "#334155", textTransform: "none" }}
-                        onClick={addToWishlish}
-                      >
-                        Add to Wishlist
-                      </Button>
+              <Paper sx={{ 
+                py: 3, 
+                px: 3, 
+                backgroundColor: 'rgba(20, 30, 20, 0.4)', 
+                minHeight: "26em", 
+                borderRadius: 2,
+                border: `1px solid ${green[900]}`,
+                mb: 3,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+              }}>
+                {/* Action buttons */}
+                <Box sx={{ display: "flex", justifyContent: "end", gap: 1.5, mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<IoAnalyticsSharp />}
+                    sx={{ 
+                      color: 'white', 
+                      backgroundColor: teal[700],
+                      textTransform: "none", 
+                      borderRadius: '10px',
+                      px: 2.5,
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: teal[600],
+                        transform: 'translateY(-2px)',
+                        boxShadow: `0 6px 12px rgba(0,128,128,0.3)`
+                      }
+                    }}
+                    onClick={() => {
+                      setOpenAnalysisModal(true);
+                      getAiAnalysis(currentStock)
+                    }}
+                  >
+                    View AI Analysis
+                  </Button>
+                  <Button
+                    startIcon={<FaPlus />}
+                    variant="outlined"
+                    sx={{ 
+                      color: grey[200], 
+                      borderColor: green[900], 
+                      borderRadius: '10px',
+                      textTransform: "none",
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        borderColor: green[700],
+                        backgroundColor: 'rgba(0, 128, 0, 0.1)',
+                        transform: 'translateX(3px)'
+                      }
+                    }}
+                    onClick={addToWishlish}
+                  >
+                    Add to Wishlist
+                  </Button>
+                </Box>
+                
+                {stockData?.regularMarketPrice !== undefined && stockData?.regularMarketChange !== undefined && stockData?.regularMarketChangePercent !== undefined ? (
+                  <StockChart 
+                    data={candleSticksData} 
+                    companyName={stockData?.shortName} 
+                    exchangeCode={companyMetadata?.exchangeCode} 
+                    price={stockData?.regularMarketPrice}
+                    marketPriceChange={`${stockData.regularMarketChange.toFixed(2)} (${stockData.regularMarketChangePercent.toFixed(2)}%) Today`}
+                  />
+                ) : (
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    height: '300px',
+                    flexDirection: 'column',
+                    gap: 2
+                  }}>
+                    <FaChartLine size={40} style={{ color: teal[400], opacity: 0.7 }} />
+                    <Typography variant="body1" color={grey[400]} sx={{ fontStyle: 'italic' }}>
+                      Search for a stock to view its chart
+                    </Typography>
                   </Box>
-                  
-                  {stockData?.regularMarketPrice !== undefined && stockData?.regularMarketChange !== undefined && stockData?.regularMarketChangePercent !== undefined ? (
-                    <StockChart 
-                      data={candleSticksData} 
-                      companyName={stockData?.shortName} 
-                      exchangeCode={companyMetadata?.exchangeCode} 
-                      price={stockData?.regularMarketPrice}
-                      marketPriceChange={`${stockData.regularMarketChange.toFixed(2)} (${stockData.regularMarketChangePercent.toFixed(2)}%) Today`}
-                    />
-                  ) : (
-                    <Typography variant="body2" color="gray">Loading stock chart...</Typography>
-                  )}
+                )}
               </Paper>
             </Box>
 
             {/* Company Profile */}
-            <Paper sx={{ px: 3, pb: 3, backgroundColor: black, minWidth: "45em", minHeight: "26em", borderRadius: 0 }}>
-              <Typography color="#cbd5e1" fontWeight="bold" variant="h6">Profile</Typography>
+            <Paper sx={{ 
+              px: 3, 
+              py: 3, 
+              backgroundColor: 'rgba(20, 30, 20, 0.4)',
+              width: "auto", // Changed from minWidth: "45em" to be responsive
+              minHeight: "26em", 
+              borderRadius: 2,
+              border: `1px solid ${green[900]}`,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+            }}>
+              <Typography color={teal[300]} fontWeight="bold" variant="h6" sx={{ mb: 2 }}>Company Profile</Typography>
 
-              {companyMetadata ? (
-                <Typography mt={1} variant="body2" color="#cbd5e1">
+              {companyMetadata?.description ? (
+                <Typography mt={1} variant="body2" color={grey[300]} sx={{ lineHeight: 1.7, letterSpacing: 0.3 }}>
                   {companyMetadata.description}
                 </Typography>
               ) : (
-                "Search a stock to get company profile"
+                <Typography variant="body2" color={grey[500]} sx={{ fontStyle: 'italic' }}>
+                  Search a stock to get company profile
+                </Typography>
               )}
             
               {/* Stock key statistics */}
-              <Box container spacing={2} mt={6} color="#cbd5e1">
-                <Typography mb={2} variant="h6" fontWeight="bold" color="white">
-                  Key Statistics
-                </Typography>
-
-                <Box display="flex" flexWrap="wrap" columnGap={6} rowGap={2}>
-                  <Typography variant="body2"><strong>Market cap</strong> <br/> {stockData?.marketCap ? formatNumber(stockData.marketCap) : "_"}</Typography>
-                  <Typography variant="body2"><strong>Dividend yield</strong> <br/> {stockData?.dividendYield ? `${stockData?.dividendYield}%` : "_"}</Typography>
-                  <Typography variant="body2"><strong>Average 10D volume</strong> <br/> {stockData?.averageDailyVolume10Day ? formatNumber(stockData.averageDailyVolume10Day) : "_" }</Typography>
-                  <Typography variant="body2"><strong>Volume</strong> <br/> {stockData?.regularMarketVolume ? formatNumber(stockData.regularMarketVolume) : "_" }</Typography>
-                  <Typography variant="body2"><strong>Today High</strong> <br/> {stockData?.regularMarketDayHigh ? stockData.regularMarketDayHigh.toFixed(2) : "_" }</Typography>
-                  <Typography variant="body2"><strong>Today Low</strong> <br/> {stockData?.regularMarketDayLow ? stockData.regularMarketDayLow.toFixed(2) : "_"}</Typography>
-                  <Typography variant="body2"><strong>Open Price</strong> <br/> {stockData?.regularMarketOpen}</Typography>
-                  <Typography variant="body2"><strong>Market Price</strong> <br/> {stockData?.regularMarketPrice}</Typography>
-                  <Typography variant="body2"><strong>52 Week low</strong> <br/> {stockData?.fiftyTwoWeekLow}</Typography>
-                  <Typography variant="body2"><strong>52 Week high</strong> <br/> {stockData?.fiftyTwoWeekHigh}</Typography>
-                  <Typography variant="body2"><strong>52 Week range</strong> <br/> {stockData?.fiftyTwoWeekRange}</Typography>
+              <Box container spacing={2} mt={6} color={grey[300]}>
+                <Box 
+                  display="flex" 
+                  flexWrap="wrap" 
+                  columnGap={6} 
+                  rowGap={3}
+                  sx={{
+                    background: 'rgba(0, 30, 0, 0.3)',
+                    p: 3,
+                    borderRadius: 2,
+                    border: `1px solid ${green[900]}`,
+                  }}
+                >
+                  <Typography variant="body2"><strong>Market cap</strong> <br/> {stockData?.marketCap ? formatNumber(stockData.marketCap) : "—"}</Typography>
+                  <Typography variant="body2"><strong>Dividend yield</strong> <br/> {stockData?.dividendYield ? `${stockData?.dividendYield}%` : "—"}</Typography>
+                  <Typography variant="body2"><strong>Average 10D volume</strong> <br/> {stockData?.averageDailyVolume10Day ? formatNumber(stockData.averageDailyVolume10Day) : "—" }</Typography>
+                  <Typography variant="body2"><strong>Volume</strong> <br/> {stockData?.regularMarketVolume ? formatNumber(stockData.regularMarketVolume) : "—" }</Typography>
+                  <Typography variant="body2"><strong>Today High</strong> <br/> {stockData?.regularMarketDayHigh ? stockData.regularMarketDayHigh.toFixed(2) : "—" }</Typography>
+                  <Typography variant="body2"><strong>Today Low</strong> <br/> {stockData?.regularMarketDayLow ? stockData.regularMarketDayLow.toFixed(2) : "—"}</Typography>
+                  <Typography variant="body2"><strong>Open Price</strong> <br/> {stockData?.regularMarketOpen || "—"}</Typography>
+                  <Typography variant="body2"><strong>Market Price</strong> <br/> {stockData?.regularMarketPrice || "—"}</Typography>
+                  <Typography variant="body2"><strong>52 Week low</strong> <br/> {stockData?.fiftyTwoWeekLow || "—"}</Typography>
+                  <Typography variant="body2"><strong>52 Week high</strong> <br/> {stockData?.fiftyTwoWeekHigh || "—"}</Typography>
+                  <Typography variant="body2"><strong>52 Week range</strong> <br/> {stockData?.fiftyTwoWeekRange || "—"}</Typography>
                 </Box>
 
-                <Box mt={4}>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="h6" fontWeight="bold" color="white">
-                      Top News
+                <Box mt={5}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography variant="h6" fontWeight="bold" color={teal[300]}>
+                      Recent News
                     </Typography>
-                    <Link mt={1.5} underline="no-underline" color={lightBlue[500]} sx={{ "&:hover": { textDecoration: "underline", cursor: "pointer"}}}>
-                      Show more
-                    </Link>
+                    <Button 
+                      size="small" 
+                      variant="text" 
+                      sx={{ 
+                        color: green[400], 
+                        textTransform: 'none',
+                        '&:hover': { 
+                          backgroundColor: 'rgba(0, 128, 0, 0.1)',
+                          color: green[300]
+                        }
+                      }}
+                    >
+                      View all news
+                    </Button>
                   </Box>
                 
-                  <hr />
-                  { stockNews ? stockNews.slice(0,4).map((news, index) => (
-                    <Link key={news.id} href={news?.url} target="_blank" underline="none" color={white}>
-                      <Box key={index} py={4} px={3} mx={-3} 
-                      sx={{
-                        "&:hover": {
-                          backgroundColor: grey[900],
-                        }
-                      }}>
-                        <Typography fontSize="11pt" color={white}>{news?.source.charAt(0).toUpperCase() + news?.source.slice(1)}</Typography>
-                        <Typography fontWeight="bold" color={white}>{news?.title}</Typography>
-                        <Typography fontSize="10pt" color="#b4b3b3">{news?.description}</Typography>
-                      </Box>
-                    </Link>
-                    )) : null
-                  }
+                  <Divider sx={{ my: 2, bgcolor: green[900], opacity: 0.7 }} />
+                  
+                  { stockNews?.length > 0 ? (
+                    stockNews.slice(0,4).map((news, index) => (
+                      <Link key={news.id} href={news?.url} target="_blank" underline="none" color={white}>
+                        <Box key={index} py={2.5} px={2.5} mb={0.5} 
+                        sx={{
+                          borderRadius: 2,
+                          transition: 'all 0.2s ease',
+                          "&:hover": {
+                            backgroundColor: 'rgba(0, 30, 0, 0.3)',
+                            transform: 'translateX(5px)',
+                          }
+                        }}>
+                          <Typography fontSize="11pt" color={teal[400]}>{news?.source.charAt(0).toUpperCase() + news?.source.slice(1)}</Typography>
+                          <Typography fontWeight="bold" color={grey[100]} sx={{ my: 0.5 }}>{news?.title}</Typography>
+                          <Typography fontSize="10pt" color={grey[500]} sx={{ opacity: 0.9 }}>{news?.description}</Typography>
+                        </Box>
+                      </Link>
+                    ))
+                  ) : (
+                    <Box sx={{ textAlign: 'center', py: 6 }}>
+                      <Typography color={grey[500]} sx={{ fontStyle: 'italic' }}>No news available for this stock</Typography>
+                    </Box>
+                  )}
                 </Box>
               </Box>
             </Paper>
           </Box>
         </Box>
       </Box>
-      <WishlistWIdget wishlist={wishlist} removeFromWishlist={removeFromWishlist} handleSearch={handleSearch} ticker={currentStock} marketChange={stockData?.regularMarketChange} />
-      <StockAnalysisModal open={openAnalysisModal} handleClose={() => setOpenAnalysisModal(false)} result={aiAnalysis} />
+      
+      {!isSmallScreen && !isMediumScreen && (
+        <WishlistWIdget 
+          wishlist={wishlist} 
+          removeFromWishlist={removeFromWishlist} 
+          handleSearch={handleSearch} 
+          ticker={currentStock} 
+          marketChange={stockData?.regularMarketChange}
+          sx={{ width: "100%" }} // Make sure it uses full allocated width
+        />
+      )}
+
+      <StockAnalysisModal open={openAnalysisModal} handleClose={() => setOpenAnalysisModal(false)} result={aiAnalysis} stock={currentStock}/>
     </Box>
   );
 }

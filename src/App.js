@@ -10,6 +10,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { useState, useEffect } from 'react';
 import News from './pages/dashboard/news';
 import AssistantPage from './assistant/AssistantPage';
+import FeaturesPage from "./pages/features";
 
 function App() {
   const [userIsAuth, setUserIsAuth] = useState(false);
@@ -37,6 +38,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/signin" element={userIsAuth ? <DashboardPage /> : <SignIn />} />
       <Route path="/signup" element={userIsAuth ? <DashboardPage /> : <Signup />} />
+      <Route path="/features" element={<FeaturesPage />} />
       <Route path="/dashboard" element={userIsAuth ? <DashboardPage /> : <SignIn />} />
       <Route path="/dashboard/chat" element={userIsAuth ? <ChatPage /> : <SignIn />} />
       <Route path="/dashboard/news" element={userIsAuth ? <News /> : <SignIn />} />

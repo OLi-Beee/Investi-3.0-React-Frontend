@@ -23,6 +23,7 @@ import { FiArrowRight } from "react-icons/fi";
 import { motion } from "framer-motion";
 import Footer from "../../components/Footer";
 import { Link } from "react-router-dom";
+import Navbar from "../../components/Navbar";
 
 const rapidKey = process.env.REACT_APP_RAPID_API_KEY;
 const API_URL = process.env.REACT_APP_API_URL;
@@ -63,54 +64,8 @@ export default function Home() {
 
   return (
     <Box sx={{ minWidth: "100vw", minHeight: "100vh", backgroundColor: "black", color: "white" }}>
-      {/* Navbar */}
-      <AppBar position="static" sx={{ backgroundColor: "black" }}>
-        <Toolbar
-          sx={{
-            justifyContent: "space-between",
-            maxWidth: "1200px",
-            mx: "auto",
-            width: "90%",
-          }}
-        >
-          {/* Logo */}
-          <Box display="flex" alignItems="center" gap={1}>
-            <FaChartLine style={{ color: "#05df72", fontSize: "24px" }} />
-            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-              Investi
-            </Typography>
-          </Box>
-
-          {/* Desktop Navigation */}
-          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
-            {["Features", "About Us", "Solutions", "Help", "Contact"].map((item, i) => (
-              <Button key={i} color="inherit">
-                {item}
-              </Button>
-            ))}
-          </Box>
-
-          {/* Auth Buttons */}
-          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
-            <Button variant="outlined" color="inherit" component={Link} to="/signin">
-              Sign in
-            </Button>
-            <Button
-              variant="contained"
-              sx={{ backgroundColor: "white", color: "black" }}
-              component={Link}
-              to="/signup"
-            >
-              Sign up
-            </Button>
-          </Box>
-
-          {/* Mobile Menu Button */}
-          <IconButton sx={{ display: { md: "none" }, color: "white" }} onClick={toggleDrawer(true)}>
-            <HiOutlineMenu />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+      {/* App Bar */}
+      <Navbar />
 
       {/* Mobile Drawer Menu */}
       <Drawer anchor="right" open={menuOpen} onClose={toggleDrawer(false)}>
@@ -124,7 +79,6 @@ export default function Home() {
           </List>
         </Box>
       </Drawer>
-
       {/* Hero Section */}
       <Container sx={{ textAlign: "center", mt: 8, maxWidth: "lg" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }}>
