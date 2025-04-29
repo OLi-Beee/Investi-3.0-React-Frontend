@@ -400,107 +400,193 @@ export default function DashboardPage() {
         <DashboardSidebar onClose={handleDrawerToggle} />
       </Drawer>
 
-      {/* Main Content */}
+      {/* Main Content - Reduce padding on mobile */}
       <Box sx={{ 
-        px: { xs: 1, sm: 2, md: 2 }, 
-        py: 2, 
+        px: { xs: 0.5, sm: 2, md: 2 }, // Reduced horizontal padding on mobile
+        py: { xs: 1, sm: 2, md: 2 },   // Reduced vertical padding on mobile
         mx: "auto",
         overflow: "auto",
         height: "100vh",
         width: "auto",
-        maxWidth: "92%",
-        // Hide scrollbar but keep scroll functionality
-        '&::-webkit-scrollbar': { 
-          display: 'none' // Chrome, Safari, and newer versions of Edge
-        },
-        scrollbarWidth: 'none', // Firefox
-        '-ms-overflow-style': 'none', // IE and Edge legacy
+        maxWidth: { xs: "100%", sm: "92%" }, // Full width on mobile
+        '&::-webkit-scrollbar': { display: 'none' },
+        scrollbarWidth: 'none',
+        '-ms-overflow-style': 'none',
       }}>
-        {/* Mobile nav toggle - only visible on mobile */}
+        
+        {/* Mobile Navigation & Search - Combined in one line */}
         {isSmallScreen && (
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ 
-              mb: 2, 
-              display: { md: 'none' },
-              color: teal[400],
-              '&:hover': { 
-                backgroundColor: 'rgba(0, 128, 128, 0.1)',
-              }
-            }}
-          >
-            <HiOutlineMenu />
-          </IconButton>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            gap: 1,
+            mb: 1.5,
+            px: 1 // Small horizontal padding to prevent edge touching
+          }}>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ 
+                color: teal[400],
+                p: 1,
+                '&:hover': { backgroundColor: 'rgba(0, 128, 128, 0.1)' }
+              }}
+            >
+              <HiOutlineMenu />
+            </IconButton>
+            
+            {/* Search Bar - Mobile Optimized */}
+            <Box sx={{ 
+              display: "flex", 
+              flexGrow: 1,
+              alignItems: "center",
+              background: 'rgba(20, 30, 20, 0.3)',
+              borderRadius: '8px',
+              border: `1px solid ${grey[900]}`,
+              overflow: 'hidden',
+              height: '38px',
+            }}>
+              <TextField
+                fullWidth
+                placeholder="Search stock..."
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+                onKeyDown={(e) => handleSearchOnEnter(e)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 0,
+                    '& fieldset': { border: 'none' }
+                  },
+                  '& .MuiInputBase-input': {
+                    color: grey[100],
+                    fontSize: '0.85rem',
+                    padding: '6px 8px',
+                    height: '18px',
+                    '&::placeholder': {
+                      color: grey[500],
+                      opacity: 1
+                    }
+                  },
+                  backgroundColor: 'transparent'
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <FaSearch style={{ color: teal[300], fontSize: '14px' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <IconButton
+                size="small"
+                sx={{
+                  color: white,
+                  backgroundColor: green[700],
+                  borderRadius: 0,
+                  height: '100%',
+                  width: '38px',
+                  '&:hover': { backgroundColor: green[600] },
+                  padding: 0,
+                }}
+                onClick={() => handleSearch(stock)}
+              >
+                <FaSearch size={14} />
+              </IconButton>
+            </Box>
+          </Box>
         )}
-
-        {/* Search Bar */}
-        <Box sx={{ 
-          display: "flex", 
-          alignItems: "center", 
-          gap: 0.5, 
-          mb: 3, 
-          mt: isSmallScreen ? 0 : 1, // Adjust margin top if hamburger is showing
-          background: 'rgba(20, 30, 20, 0.3)',
-          borderRadius: '10px',
-          border: `1px solid ${grey[900]}`,
-          overflow: 'hidden',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-        }}>
-          <TextField
-            fullWidth
-            placeholder="Search for a stock (e.g., TSLA, AAPL)"
-            value={stock}
-            onChange={(e) => setStock(e.target.value)}
-            onKeyDown={(e) => handleSearchOnEnter(e)}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 0,
-                '& fieldset': { border: 'none' }
-              },
-              '& .MuiInputBase-input': {
-                color: grey[100],
-                fontSize: '1rem',
-                padding: { xs: '10px 12px', sm: '14px 16px' },
-                '&::placeholder': {
-                  color: grey[500],
-                  opacity: 1
-                }
-              },
-              backgroundColor: 'transparent'
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <FaSearch style={{ color: teal[300] }} />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: green[700],
-              color: white,
-              px: 3,
-              py: 1.6,
-              borderRadius: 0,
-              "&:hover": { 
-                backgroundColor: green[600],
-                transform: 'translateX(2px)'
-              },
-              textTransform: "none",
-              transition: 'all 0.2s ease'
-            }}
-            onClick={() => handleSearch(stock)}
-          >
-            Search
-          </Button>
-        </Box>
-
-        {/* Stock Chart + Profile Section */}
+        
+        {/* Non-mobile search bar - keep as is */}
+        {!isSmallScreen && (
+          <Box sx={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: 0.5, 
+            mb: 1, 
+            mt: 1,
+            background: 'rgba(20, 30, 20, 0.3)',
+            borderRadius: '10px',
+            border: `1px solid ${grey[900]}`,
+            overflow: 'hidden',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          }}>
+            <TextField
+              fullWidth
+              placeholder={isSmallScreen ? "Search stock..." : "Search for a stock (e.g., TSLA, AAPL)"}
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              onKeyDown={(e) => handleSearchOnEnter(e)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 0,
+                  '& fieldset': { border: 'none' }
+                },
+                '& .MuiInputBase-input': {
+                  color: grey[100],
+                  fontSize: isSmallScreen ? '0.85rem' : '1rem',
+                  padding: isSmallScreen ? '8px 10px' : { xs: '10px 12px', sm: '14px 16px' },
+                  height: isSmallScreen ? '20px' : 'auto',
+                  '&::placeholder': {
+                    color: grey[500],
+                    opacity: 1
+                  }
+                },
+                backgroundColor: 'transparent'
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <FaSearch style={{ 
+                      color: teal[300], 
+                      fontSize: isSmallScreen ? '14px' : '16px' 
+                    }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            {isSmallScreen ? (
+              <IconButton
+                size="small"
+                sx={{
+                  color: white,
+                  backgroundColor: green[700],
+                  borderRadius: 0,
+                  height: '100%',
+                  width: '40px',
+                  '&:hover': { backgroundColor: green[600] },
+                  padding: 0,
+                }}
+                onClick={() => handleSearch(stock)}
+              >
+                <FaSearch size={14} />
+              </IconButton>
+            ) : (
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: green[700],
+                  color: white,
+                  px: 3,
+                  py: 1.6,
+                  borderRadius: 0,
+                  "&:hover": { 
+                    backgroundColor: green[600],
+                    transform: 'translateX(2px)'
+                  },
+                  textTransform: "none",
+                  transition: 'all 0.2s ease'
+                }}
+                onClick={() => handleSearch(stock)}
+              >
+                Search
+              </Button>
+            )}
+          </Box>
+        )}
+        
+        {/* Rest of your content */}
         <Box>
           <Box>
 
