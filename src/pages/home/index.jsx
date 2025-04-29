@@ -303,11 +303,15 @@ export default function Home() {
       </Container>
 
       {/* Stock Cards Section */}
-      <Container sx={{ mt: isMobile ? 6 : 10, mb: isMobile ? 6 : 10, maxWidth: "lg" }}>
-        <Grid container spacing={2} justifyContent="center">
+      <Container sx={{ 
+        mt: isMobile ? 6 : 10, 
+        mb: isMobile ? 6 : 10, 
+        maxWidth: "lg"
+      }}>
+        <Grid container spacing={3} justifyContent="center">
           {stockData ? stockData.map((stock, index) => (
-            <Grid item key={index} xs={6} sm={6} md={4} lg={3}>
-              <motion.div whileHover={{ scale: 1.03 }}>
+            <Grid item key={index} xs={6} sm={6} md={3} lg={3}>
+              <motion.div>
                 <Card
                   sx={{
                     backgroundColor: cardBg,
@@ -316,33 +320,52 @@ export default function Home() {
                     borderRadius: 2,
                     boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
                     border: `1px solid ${green[900]}`,
-                    height: "100%",
+                    height: 100, // Fixed height
+                    width: "15em", // Use full width of grid item
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
                     transition: "all 0.3s ease",
                     "&:hover": {
                       boxShadow: `0 8px 25px rgba(0,100,0,0.2)`,
                       borderColor: green[800],
-                      background: 'rgba(20, 35, 20, 0.5)', // Slightly lighter on hover
+                      background: 'rgba(20, 35, 20, 0.5)',
                     }
                   }}
                 >
-                  <CardContent>
-                    <Typography variant="h6" sx={{ 
-                      fontWeight: "bold", 
-                      color: white,
-                      fontSize: { xs: "11pt", sm: "12pt" }
-                    }}>
-                      {stock.symbol}
-                    </Typography>
-                    <Typography variant="body2" color={grey[400]} sx={{ 
-                      fontSize: { xs: "8pt", sm: "9pt" },
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      maxWidth: '100%'
-                    }}>
-                      {stock.shortName}
-                    </Typography>
-                    <Box display="flex" justifyContent="center" alignItems="center" gap={1} mt={1.5}>
+                  <CardContent sx={{ 
+                    p: 1.5, 
+                    pb: 1.5, // Override default padding
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                    justifyContent: "space-between"
+                  }}>
+                    <Box>
+                      <Typography variant="h6" sx={{ 
+                        fontWeight: "bold", 
+                        color: white,
+                        fontSize: { xs: "11pt", sm: "12pt" },
+                        mb: 0.2
+                      }}>
+                        {stock.symbol}
+                      </Typography>
+                      <Typography variant="body2" color={grey[400]} sx={{ 
+                        fontSize: { xs: "8pt", sm: "9pt" },
+                        // Allow text to wrap
+                        whiteSpace: 'normal',
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        lineHeight: 1,
+                        minHeight: "2.4em", // Space for 2 lines of text
+                      }}>
+                        {stock.shortName}
+                      </Typography>
+                    </Box>
+                    
+                    <Box display="flex" justifyContent="center" alignItems="center" gap={1} mt={0.2}>
                       <Typography variant="h6" color={white} sx={{ 
                         fontSize: { xs: "10pt", sm: "11pt" }
                       }}>
@@ -386,7 +409,7 @@ export default function Home() {
             opacity: 0.6,
           },
           background: 'rgba(10, 15, 10, 0.8)', // Slightly darker than the main background
-          py: 4,
+          py: 0,
         }}
       >
         <Footer />
