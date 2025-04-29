@@ -366,13 +366,19 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <Box sx={{ 
-        px: { xs: 1, sm: 2, md: 3 }, 
+        px: { xs: 1, sm: 2, md: 2 }, 
         py: 2, 
         mx: "auto",
         overflow: "auto",
         height: "100vh",
-        width: "auto", // Change from 100% to auto to prevent overflow
-        maxWidth: "91%", // Ensure it doesn't exceed its container
+        width: "auto",
+        maxWidth: "92%",
+        // Hide scrollbar but keep scroll functionality
+        '&::-webkit-scrollbar': { 
+          display: 'none' // Chrome, Safari, and newer versions of Edge
+        },
+        scrollbarWidth: 'none', // Firefox
+        '-ms-overflow-style': 'none', // IE and Edge legacy
       }}>
 
         {/* Search Bar */}
@@ -447,12 +453,12 @@ export default function DashboardPage() {
             <Box>
               <Paper sx={{ 
                 py: 3, 
-                px: 3, 
+                px: 1.5, 
                 backgroundColor: 'rgba(20, 30, 20, 0.4)', 
                 minHeight: "26em", 
                 borderRadius: 2,
                 border: `1px solid ${green[900]}`,
-                mb: 3,
+                mb: 1,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
               }}>
                 {/* Action buttons */}
@@ -538,7 +544,7 @@ export default function DashboardPage() {
               border: `1px solid ${green[900]}`,
               boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
             }}>
-              <Typography color={teal[300]} fontWeight="bold" variant="h6" sx={{ mb: 2 }}>Company Profile</Typography>
+              <Typography color={teal[300]} fontWeight="bold" variant="h6" sx={{ mb: 1 }}>Company Profile</Typography>
 
               {companyMetadata?.description ? (
                 <Typography mt={1} variant="body2" color={grey[300]} sx={{ lineHeight: 1.7, letterSpacing: 0.3 }}>
@@ -551,7 +557,7 @@ export default function DashboardPage() {
               )}
             
               {/* Stock key statistics */}
-              <Box container spacing={2} mt={6} color={grey[300]}>
+              <Box container spacing={2} mt={3} color={grey[300]}>
                 <Box 
                   display="flex" 
                   flexWrap="wrap" 

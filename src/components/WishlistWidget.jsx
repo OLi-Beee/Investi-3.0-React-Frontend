@@ -141,7 +141,7 @@ const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch, marketChan
         borderBottom: `1px solid ${grey[900]}`,
         display: 'flex',
         alignItems: 'center',
-        gap: 1.5
+        gap: 1
       }}>
         <IoBookmarkOutline size={20} style={{ color: teal[400] }} />
         <Typography 
