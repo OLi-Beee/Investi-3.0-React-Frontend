@@ -31,6 +31,15 @@ const Navbar = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+  
+  // Navigation links configuration with proper routing paths
+  const navLinks = [
+    { name: "Features", path: "/features" },
+    { name: "About Us", path: "/about-us" },
+    { name: "Solutions", path: "/solutions" },
+    { name: "Help", path: "/help" },
+    { name: "Contact", path: "/contact" }
+  ];
     
   return (
     <Box>
@@ -50,8 +59,15 @@ const Navbar = () => {
             width: "98%",
           }}
         >
-          {/* Logo */}
-          <Box display="flex" alignItems="center" gap={1}>
+          {/* Logo - Make it clickable to home page */}
+          <Box 
+            component={Link} 
+            to="/"
+            display="flex" 
+            alignItems="center" 
+            gap={1}
+            sx={{ textDecoration: 'none' }}
+          >
             <FaChartLine style={{ color: teal[400], fontSize: "24px" }} />
             <Typography variant="h6" sx={{ fontWeight: "bold", color: white }}>
               Investi
@@ -60,11 +76,11 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
-            {["Features", "About Us", "Solutions", "Help", "Contact"].map((item, i) => (
+            {navLinks.map((item, i) => (
               <Button 
                 key={i} 
                 component={Link} 
-                to={`/${item.toLowerCase().replace(" ", "-")}`}
+                to={item.path}
                 sx={{ 
                   color: grey[300],
                   textTransform: 'none',
@@ -74,7 +90,7 @@ const Navbar = () => {
                   }
                 }}
               >
-                {item}
+                {item.name}
               </Button>
             ))}
           </Box>
@@ -170,12 +186,13 @@ const Navbar = () => {
           <Divider sx={{ bgcolor: green[900], opacity: 0.5 }} />
           
           <List>
-            {["Features", "About Us", "Solutions", "Help", "Contact"].map((text, i) => (
+            {navLinks.map((item, i) => (
               <ListItem 
                 button 
                 key={i} 
                 component={Link}
-                to={`/${text.toLowerCase().replace(" ", "-")}`}
+                to={item.path}
+                onClick={toggleDrawer(false)} // Close drawer when clicked
                 sx={{ 
                   '&:hover': { 
                     backgroundColor: 'rgba(0, 128, 0, 0.1)',
@@ -183,7 +200,7 @@ const Navbar = () => {
                 }}
               >
                 <ListItemText 
-                  primary={text} 
+                  primary={item.name} 
                   sx={{ 
                     color: grey[300],
                     '.MuiListItemText-primary': {
@@ -205,6 +222,7 @@ const Navbar = () => {
               variant="outlined"
               startIcon={<FaSignInAlt />}
               fullWidth
+              onClick={toggleDrawer(false)} // Close drawer when clicked
               sx={{
                 color: grey[100],
                 borderColor: green[900],
@@ -226,6 +244,7 @@ const Navbar = () => {
               variant="contained"
               startIcon={<FaUserPlus />}
               fullWidth
+              onClick={toggleDrawer(false)} // Close drawer when clicked
               sx={{
                 backgroundColor: green[700],
                 color: white,

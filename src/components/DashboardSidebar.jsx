@@ -12,7 +12,7 @@ import {
   IoAnalyticsSharp
 } from "react-icons/io5";
 
-function DashboardSidebar() {
+function DashboardSidebar({ onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
@@ -62,6 +62,13 @@ function DashboardSidebar() {
     fontSize: '0.95rem',
     letterSpacing: 0.3,
   });
+
+  // Add click handler for mobile
+  const handleItemClick = () => {
+    if (onClose) {
+      onClose(); // Close drawer when item is clicked on mobile
+    }
+  };
 
   return (
     <Box
@@ -129,7 +136,10 @@ function DashboardSidebar() {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1, px: 1 }}>
           <Tooltip title="Dashboard" placement="right" arrow>
             <Button
-              onClick={() => navigate("/dashboard")}
+              onClick={() => {
+                navigate("/dashboard");
+                handleItemClick();
+              }}
               startIcon={<IoHomeSharp size={20} />}
               sx={getButtonStyle("/dashboard")}
             >
@@ -139,7 +149,10 @@ function DashboardSidebar() {
 
           <Tooltip title="Chat with AI" placement="right" arrow>
             <Button
-              onClick={() => navigate("/dashboard/chat")}
+              onClick={() => {
+                navigate("/dashboard/chat");
+                handleItemClick();
+              }}
               startIcon={<IoChatbubbleEllipsesOutline size={20} />}
               sx={getButtonStyle("/dashboard/chat")}
             >
@@ -149,7 +162,10 @@ function DashboardSidebar() {
 
           <Tooltip title="Latest News" placement="right" arrow>
             <Button
-              onClick={() => navigate("/dashboard/news")}
+              onClick={() => {
+                navigate("/dashboard/news");
+                handleItemClick();
+              }}
               startIcon={<IoNewspaperOutline size={20} />}
               sx={getButtonStyle("/dashboard/news")}
             >
@@ -159,7 +175,10 @@ function DashboardSidebar() {
 
           <Tooltip title="Settings" placement="right" arrow>
             <Button 
-              onClick={() => navigate("/dashboard/settings")}
+              onClick={() => {
+                navigate("/dashboard/settings");
+                handleItemClick();
+              }}
               startIcon={<IoSettingsOutline size={20} />}
               sx={getButtonStyle("/dashboard/settings")}
             >

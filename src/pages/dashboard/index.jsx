@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
-import { Box, Button, TextField, Typography, Grid, Paper, Divider, Link, InputAdornment, useMediaQuery, useTheme } from "@mui/material";
+import { 
+  Box, Button, TextField, Typography, Grid, Paper, 
+  Divider, Link, InputAdornment, useMediaQuery, useTheme,
+  IconButton, Drawer
+} from "@mui/material";
 import { FaSearch, FaPlus, FaRegCommentDots, FaChartLine } from "react-icons/fa";
 import { IoAnalyticsSharp, IoStatsChartSharp } from "react-icons/io5";
+import { HiOutlineMenu } from "react-icons/hi"; // Add this import for the hamburger icon
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebaseConfig";
 import { red, green, blue, lightBlue, cyan, teal, lightGreen, grey } from '@mui/material/colors';
@@ -20,11 +25,20 @@ const white = "#ffffff";
 const darkBg = "#0d0d0d";
 const black = "#000000";
 const API_URL = process.env.REACT_APP_API_URL;
+const darkGradient = 'linear-gradient(to bottom, #121212, #0d0d0d)';
 
 export default function DashboardPage() {
   const theme = useTheme();
   const isMediumScreen = useMediaQuery(theme.breakpoints.down('lg'));
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+  
+  // Add state for mobile sidebar drawer
+  const [mobileOpen, setMobileOpen] = useState(false);
+  
+  // Handle toggle drawer
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
   // ------------------ State ------------------
   const [stock, setStock] = useState("");
@@ -364,6 +378,28 @@ export default function DashboardPage() {
       {/* Sidebar - Hidden on mobile */}
       {!isSmallScreen && <DashboardSidebar />}
 
+      {/* Mobile sidebar drawer */}
+      <Drawer
+        anchor="left"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        variant="temporary"
+        ModalProps={{
+          keepMounted: true, // Better mobile performance
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { 
+            width: 240,
+            boxSizing: 'border-box',
+            background: darkGradient || 'linear-gradient(to bottom, #121212, #0d0d0d)',
+            borderRight: `1px solid ${green[900]}`,
+          },
+        }}
+      >
+        <DashboardSidebar onClose={handleDrawerToggle} />
+      </Drawer>
+
       {/* Main Content */}
       <Box sx={{ 
         px: { xs: 1, sm: 2, md: 2 }, 
@@ -380,6 +416,25 @@ export default function DashboardPage() {
         scrollbarWidth: 'none', // Firefox
         '-ms-overflow-style': 'none', // IE and Edge legacy
       }}>
+        {/* Mobile nav toggle - only visible on mobile */}
+        {isSmallScreen && (
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ 
+              mb: 2, 
+              display: { md: 'none' },
+              color: teal[400],
+              '&:hover': { 
+                backgroundColor: 'rgba(0, 128, 128, 0.1)',
+              }
+            }}
+          >
+            <HiOutlineMenu />
+          </IconButton>
+        )}
 
         {/* Search Bar */}
         <Box sx={{ 
@@ -387,7 +442,7 @@ export default function DashboardPage() {
           alignItems: "center", 
           gap: 0.5, 
           mb: 3, 
-          mt: 1,
+          mt: isSmallScreen ? 0 : 1, // Adjust margin top if hamburger is showing
           background: 'rgba(20, 30, 20, 0.3)',
           borderRadius: '10px',
           border: `1px solid ${grey[900]}`,

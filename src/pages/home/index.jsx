@@ -28,6 +28,7 @@ import Footer from "../../components/Footer";
 import { Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import { green, teal, grey, red } from '@mui/material/colors';
+import DashboardSidebar from "../../components/DashboardSidebar";
 
 const rapidKey = process.env.REACT_APP_RAPID_API_KEY;
 const API_URL = process.env.REACT_APP_API_URL;
@@ -39,12 +40,15 @@ const cardBg = 'rgba(20, 30, 20, 0.4)';
 const white = "#ffffff";
 
 export default function Home() {
-  const [menuOpen, setMenuOpen] = useState(false);
   const isSignedIn = false; // temp boolean until you hook in auth
   const [stockData, setStockData] = useState([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const drawerRef = useRef(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,137 +69,16 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const toggleDrawer = (open) => () => {
-    setMenuOpen(open);
-  };
-
-  // Handle clicks outside the drawer to close it
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (drawerRef.current && !drawerRef.current.contains(event.target)) {
-        setMenuOpen(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   return (
     <Box sx={{ 
       minWidth: "100vw", 
       minHeight: "100vh", 
-      backgroundColor: darkBg, // #0d0d0d - very dark
+      backgroundColor: darkBg,
       color: white,
-      background: darkGradient // Linear gradient from dark to darker
+      background: darkGradient
     }}>
       {/* App Bar */}
       <Navbar />
-
-      {/* Mobile Drawer Menu */}
-      <Drawer 
-        anchor="right" 
-        open={menuOpen} 
-        onClose={toggleDrawer(false)}
-      >
-        <Box 
-          ref={drawerRef}
-          sx={{ 
-            width: 250, 
-            background: darkGradient, 
-            height: "100%",
-            borderLeft: `1px solid ${grey[900]}`,
-            position: 'relative',
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '1px',
-              height: '100%',
-              background: `linear-gradient(to bottom, transparent, ${green[900]}, transparent)`,
-              opacity: 0.6,
-            },
-          }}
-        >
-          <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <FaChartLine style={{ color: teal[400] }} />
-            <Typography variant="h6" sx={{ fontWeight: 'bold', color: teal[300] }}>
-              Investi
-            </Typography>
-          </Box>
-          
-          <Divider sx={{ bgcolor: green[900], opacity: 0.5 }} />
-          
-          <List>
-            {["Features", "About Us", "Solutions", "Help", "Contact"].map((text, i) => (
-              <ListItem button key={i} sx={{ 
-                '&:hover': { 
-                  backgroundColor: 'rgba(0, 128, 0, 0.1)',
-                }
-              }}>
-                <ListItemText 
-                  primary={text} 
-                  sx={{ 
-                    color: grey[300],
-                    '.MuiListItemText-primary': {
-                      fontSize: '0.95rem'
-                    }
-                  }} 
-                />
-              </ListItem>
-            ))}
-          </List>
-          
-          <Divider sx={{ bgcolor: green[900], opacity: 0.5, mt: 2 }} />
-          
-          {/* Mobile Auth Buttons */}
-          <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <Button
-              component={Link}
-              to="/signin"
-              variant="outlined"
-              startIcon={<FaSignInAlt />}
-              fullWidth
-              sx={{
-                color: grey[100],
-                borderColor: green[900],
-                borderRadius: '10px',
-                textTransform: 'none',
-                py: 1,
-                '&:hover': {
-                  borderColor: green[700],
-                  backgroundColor: 'rgba(0, 128, 0, 0.1)',
-                }
-              }}
-            >
-              Sign In
-            </Button>
-            
-            <Button
-              component={Link}
-              to="/signup"
-              variant="contained"
-              startIcon={<FaUserPlus />}
-              fullWidth
-              sx={{
-                backgroundColor: green[700],
-                color: white,
-                borderRadius: '10px',
-                textTransform: 'none',
-                py: 1,
-                '&:hover': {
-                  backgroundColor: green[600],
-                }
-              }}
-            >
-              Sign Up
-            </Button>
-          </Box>
-        </Box>
-      </Drawer>
 
       {/* Hero Section */}
       <Container sx={{ 
