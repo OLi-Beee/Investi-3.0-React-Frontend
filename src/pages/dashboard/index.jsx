@@ -598,7 +598,7 @@ export default function DashboardPage() {
                 backgroundColor: 'rgba(20, 30, 20, 0.4)', 
                 minHeight: "26em", 
                 borderRadius: 2,
-                border: `1px solid ${green[900]}`,
+                // border: `1px solid ${green[900]}`,
                 mb: 1,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
               }}>
@@ -682,7 +682,7 @@ export default function DashboardPage() {
               width: "auto", // Changed from minWidth: "45em" to be responsive
               minHeight: "26em", 
               borderRadius: 2,
-              border: `1px solid ${green[900]}`,
+              // border: `1px solid ${green[900]}`,
               boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
             }}>
               <Typography color={teal[300]} fontWeight="bold" variant="h6" sx={{ mb: 1 }}>Company Profile</Typography>

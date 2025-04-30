@@ -23,7 +23,6 @@ export const isStockMarketOpen= (dateString) => {
   
     const isWeekend = day === 0 || day === 6;
     const isMarketHours = hours >= 9 && hours < 17; // 9AM to 5PM
-  
     return !isWeekend && isMarketHours;
 }
 

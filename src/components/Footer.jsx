@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Container, Grid, Typography, Link, IconButton, Divider, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Container, Grid, Typography, Link as MuiLink, IconButton, Divider, useMediaQuery, useTheme } from '@mui/material';
+import { Link } from 'react-router-dom';
 import { FaTwitter, FaFacebook, FaLinkedin, FaGithub, FaChartLine } from 'react-icons/fa';
 import { green, teal, grey } from '@mui/material/colors';
 
@@ -13,6 +14,43 @@ const Footer = () => {
   
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Main Navigation (Added from Navbar) */}
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          gap: { xs: 2, sm: 4 },
+          mb: 4,
+          pb: 3,
+          borderBottom: `1px solid ${green[900]}`,
+        }}
+      >
+        {['Features', 'Solutions', 'About Us', 'Help', 'Contact'].map((item, i) => (
+          <Link 
+            key={i}
+            to={`/${item.toLowerCase().replace(' ', '-')}`}
+            style={{ textDecoration: 'none' }}
+          >
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: grey[300], 
+                fontWeight: 500,
+                fontSize: { xs: '0.9rem', sm: '1rem' },
+                '&:hover': { 
+                  color: teal[400],
+                  transform: 'translateY(-2px)'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {item}
+            </Typography>
+          </Link>
+        ))}
+      </Box>
+
       <Grid container spacing={4}>
         {/* Logo and description */}
         <Grid item xs={12} sm={6} md={4}>
@@ -69,18 +107,21 @@ const Footer = () => {
             PRODUCT
           </Typography>
           <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0 }}>
-            {['Dashboard', 'Features', 'AI Analysis', 'Pricing', 'Documentation'].map((item, i) => (
+            {['Dashboard', 'Features', 'Solutions', 'AI Analysis', 'Pricing', 'Documentation'].map((item, i) => (
               <Box component="li" key={i} sx={{ mb: 1 }}>
                 <Link 
-                  href="#" 
-                  underline="none" 
-                  sx={{ 
-                    color: grey[400], 
-                    fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                    '&:hover': { color: green[400] } 
-                  }}
+                  to={`/${item.toLowerCase().replace(' ', '-')}`}
+                  style={{ textDecoration: 'none' }}
                 >
-                  {item}
+                  <Typography
+                    sx={{ 
+                      color: grey[400], 
+                      fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                      '&:hover': { color: green[400] } 
+                    }}
+                  >
+                    {item}
+                  </Typography>
                 </Link>
               </Box>
             ))}
@@ -104,15 +145,18 @@ const Footer = () => {
             {['About Us', 'Careers', 'Press', 'News', 'Contact'].map((item, i) => (
               <Box component="li" key={i} sx={{ mb: 1 }}>
                 <Link 
-                  href="#" 
-                  underline="none" 
-                  sx={{ 
-                    color: grey[400], 
-                    fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                    '&:hover': { color: green[400] } 
-                  }}
+                  to={`/${item.toLowerCase().replace(' ', '-')}`}
+                  style={{ textDecoration: 'none' }}
                 >
-                  {item}
+                  <Typography
+                    sx={{ 
+                      color: grey[400], 
+                      fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                      '&:hover': { color: green[400] } 
+                    }}
+                  >
+                    {item}
+                  </Typography>
                 </Link>
               </Box>
             ))}
@@ -136,22 +180,25 @@ const Footer = () => {
             {['Terms', 'Privacy', 'Cookies', 'Licenses', 'Settings'].map((item, i) => (
               <Box component="li" key={i} sx={{ mb: 1 }}>
                 <Link 
-                  href="#" 
-                  underline="none" 
-                  sx={{ 
-                    color: grey[400], 
-                    fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                    '&:hover': { color: green[400] } 
-                  }}
+                  to={`/${item.toLowerCase().replace(' ', '-')}`}
+                  style={{ textDecoration: 'none' }}
                 >
-                  {item}
+                  <Typography
+                    sx={{ 
+                      color: grey[400], 
+                      fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                      '&:hover': { color: green[400] } 
+                    }}
+                  >
+                    {item}
+                  </Typography>
                 </Link>
               </Box>
             ))}
           </Box>
         </Grid>
 
-        {/* Newsletter Section */}
+        {/* Links Section 4 */}
         <Grid item xs={6} sm={6} md={2}>
           <Typography 
             variant="subtitle2" 
@@ -168,15 +215,18 @@ const Footer = () => {
             {['Blog', 'Newsletter', 'Events', 'Help Center', 'Tutorials'].map((item, i) => (
               <Box component="li" key={i} sx={{ mb: 1 }}>
                 <Link 
-                  href="#" 
-                  underline="none" 
-                  sx={{ 
-                    color: grey[400], 
-                    fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                    '&:hover': { color: green[400] } 
-                  }}
+                  to={`/${item.toLowerCase().replace(' ', '-')}`}
+                  style={{ textDecoration: 'none' }}
                 >
-                  {item}
+                  <Typography
+                    sx={{ 
+                      color: grey[400], 
+                      fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                      '&:hover': { color: green[400] } 
+                    }}
+                  >
+                    {item}
+                  </Typography>
                 </Link>
               </Box>
             ))}
@@ -210,15 +260,18 @@ const Footer = () => {
           {['Privacy Policy', 'Terms of Service', 'Cookies Settings'].map((item, i) => (
             <Link 
               key={i}
-              href="#" 
-              underline="none" 
-              sx={{ 
-                color: grey[500], 
-                fontSize: { xs: '0.75rem', sm: '0.8rem' },
-                '&:hover': { color: teal[400] } 
-              }}
+              to={`/${item.toLowerCase().replace(' ', '-').replace(' of ', '-')}`}
+              style={{ textDecoration: 'none' }}
             >
-              {item}
+              <Typography
+                sx={{ 
+                  color: grey[500], 
+                  fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                  '&:hover': { color: teal[400] } 
+                }}
+              >
+                {item}
+              </Typography>
             </Link>
           ))}
         </Box>

@@ -31,15 +31,6 @@ const Navbar = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-  
-  // Navigation links configuration with proper routing paths
-  const navLinks = [
-    { name: "Features", path: "/features" },
-    { name: "About Us", path: "/about-us" },
-    { name: "Solutions", path: "/solutions" },
-    { name: "Help", path: "/help" },
-    { name: "Contact", path: "/contact" }
-  ];
     
   return (
     <Box>
@@ -50,6 +41,7 @@ const Navbar = () => {
         sx={{ 
           background: darkGradient,
           borderBottom: `1px solid ${grey[900]}`,
+          zIndex: 10,
         }}
       >
         <Toolbar
@@ -74,26 +66,8 @@ const Navbar = () => {
             </Typography>
           </Box>
 
-          {/* Desktop Navigation */}
-          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
-            {navLinks.map((item, i) => (
-              <Button 
-                key={i} 
-                component={Link} 
-                to={item.path}
-                sx={{ 
-                  color: grey[300],
-                  textTransform: 'none',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 128, 0, 0.1)',
-                    color: white
-                  }
-                }}
-              >
-                {item.name}
-              </Button>
-            ))}
-          </Box>
+          {/* Empty space where navigation used to be */}
+          <Box sx={{ flexGrow: 1 }} />
 
           {/* Auth Buttons */}
           <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
@@ -110,7 +84,9 @@ const Navbar = () => {
                 '&:hover': {
                   borderColor: green[700],
                   backgroundColor: 'rgba(0, 128, 0, 0.1)',
-                }
+                },
+                position: 'relative',
+                zIndex: 20
               }}
             >
               Sign in
@@ -127,21 +103,25 @@ const Navbar = () => {
                 textTransform: 'none',
                 '&:hover': {
                   backgroundColor: green[600],
-                }
+                },
+                position: 'relative',
+                zIndex: 20
               }}
             >
               Sign up
             </Button>
           </Box>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Now only for auth options */}
           <IconButton 
             sx={{ 
               display: { md: "none" }, 
               color: teal[400],
               '&:hover': {
                 backgroundColor: 'rgba(0, 128, 128, 0.1)',
-              }
+              },
+              position: 'relative',
+              zIndex: 20
             }} 
             onClick={toggleDrawer(true)}
           >
@@ -150,7 +130,7 @@ const Navbar = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer Menu - Now only shows auth buttons */}
       <Drawer 
         anchor="right" 
         open={menuOpen} 
@@ -184,35 +164,6 @@ const Navbar = () => {
           </Box>
           
           <Divider sx={{ bgcolor: green[900], opacity: 0.5 }} />
-          
-          <List>
-            {navLinks.map((item, i) => (
-              <ListItem 
-                button 
-                key={i} 
-                component={Link}
-                to={item.path}
-                onClick={toggleDrawer(false)} // Close drawer when clicked
-                sx={{ 
-                  '&:hover': { 
-                    backgroundColor: 'rgba(0, 128, 0, 0.1)',
-                  }
-                }}
-              >
-                <ListItemText 
-                  primary={item.name} 
-                  sx={{ 
-                    color: grey[300],
-                    '.MuiListItemText-primary': {
-                      fontSize: '0.95rem'
-                    }
-                  }} 
-                />
-              </ListItem>
-            ))}
-          </List>
-          
-          <Divider sx={{ bgcolor: green[900], opacity: 0.5, mt: 2 }} />
           
           {/* Mobile Auth Buttons */}
           <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
