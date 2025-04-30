@@ -249,7 +249,7 @@ export default function Home() {
                       </Typography>
                     </Box>
                     
-                    <Box display="flex" justifyContent="center" alignItems="center" gap={0.5} mt={0.2}>
+                    <Box display="flex" justifyContent="center" alignItems="center" gap={0.5} mt={0}>
                       <Typography variant="h6" color={white} sx={{ 
                         fontSize: { xs: "0.65rem", sm: "0.75rem", md: "0.8rem" }
                       }}>
