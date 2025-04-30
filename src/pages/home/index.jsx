@@ -187,24 +187,25 @@ export default function Home() {
 
       {/* Stock Cards Section */}
       <Container sx={{ 
-        mt: isMobile ? 6 : 10, 
-        mb: isMobile ? 6 : 10, 
-        maxWidth: "lg"
+        mt: isMobile ? 4 : 10, 
+        mb: isMobile ? 4 : 10, 
+        maxWidth: "lg",
+        px: isMobile ? 1 : 2 // Reduce padding on mobile
       }}>
-        <Grid container spacing={3} justifyContent="center">
+        <Grid container spacing={isMobile ? 1.5 : 3} justifyContent="center">
           {stockData ? stockData.map((stock, index) => (
             <Grid item key={index} xs={6} sm={6} md={3} lg={3}>
-              <motion.div>
+              <motion.div style={{ width: '100%' }}>
                 <Card
                   sx={{
                     backgroundColor: cardBg,
                     textAlign: "center",
-                    p: 1,
-                    borderRadius: 2,
+                    p: 0,
+                    borderRadius: isMobile ? 1.5 : 2,
                     boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
                     border: `1px solid ${green[900]}`,
-                    height: 100, // Fixed height
-                    width: "15em", // Use full width of grid item
+                    height: isMobile ? 'auto' : 98, // Responsive height on mobile
+                    width: isMobile ? 360 : 250, // Use full width of grid item
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
@@ -217,40 +218,40 @@ export default function Home() {
                   }}
                 >
                   <CardContent sx={{ 
-                    p: 1.5, 
-                    pb: 1.5, // Override default padding
+                    p: isMobile ? 1 : 1.5, 
+                    pb: isMobile ? 1 : 1.5, // Override default padding
                     display: "flex",
                     flexDirection: "column",
                     height: "100%",
-                    justifyContent: "space-between"
+                    justifyContent: "space-between",
+                    '&:last-child': { pb: isMobile ? 1 : 1.5 } // Override MUI default
                   }}>
                     <Box>
                       <Typography variant="h6" sx={{ 
                         fontWeight: "bold", 
                         color: white,
-                        fontSize: { xs: "11pt", sm: "12pt" },
+                        fontSize: { xs: "0.4rem", sm: "0.6rem", md: ".7rem" },
                         mb: 0.2
                       }}>
                         {stock.symbol}
                       </Typography>
                       <Typography variant="body2" color={grey[400]} sx={{ 
-                        fontSize: { xs: "8pt", sm: "9pt" },
-                        // Allow text to wrap
+                        fontSize: { xs: "0.65rem", sm: "0.7rem", md: "0.75rem" },
                         whiteSpace: 'normal',
                         overflow: 'hidden',
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
-                        lineHeight: 1,
-                        minHeight: "2.4em", // Space for 2 lines of text
+                        lineHeight: 1.2,
+                        minHeight: { xs: "2.1em", sm: "2.4em" },
                       }}>
                         {stock.shortName}
                       </Typography>
                     </Box>
                     
-                    <Box display="flex" justifyContent="center" alignItems="center" gap={1} mt={0.2}>
+                    <Box display="flex" justifyContent="center" alignItems="center" gap={0.5} mt={0.2}>
                       <Typography variant="h6" color={white} sx={{ 
-                        fontSize: { xs: "10pt", sm: "11pt" }
+                        fontSize: { xs: "0.65rem", sm: "0.75rem", md: "0.8rem" }
                       }}>
                         ${stock.regularMarketPrice.toFixed(2)}
                       </Typography>
@@ -259,7 +260,7 @@ export default function Home() {
                         sx={{
                           color: stock.regularMarketChange >= 0 ? green[400] : red[400],
                           fontWeight: "bold",
-                          fontSize: { xs: "8pt", sm: "9pt" }
+                          fontSize: { xs: "0.65rem", sm: "0.7rem", md: "0.75rem" }
                         }}
                       >
                         {stock.regularMarketChange >= 0
