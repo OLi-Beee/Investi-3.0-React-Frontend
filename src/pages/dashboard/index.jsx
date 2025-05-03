@@ -277,24 +277,86 @@ export default function DashboardPage() {
     }
   }
 
-  //----------------- perform analysis ----------------
-  const getAiAnalysis = async (ticker) => {
-    const url = `${API_URL}/analysis?ticker=${ticker}`;
-    const deepSeekUrl = `${API_URL}/deepseek-analysis?ticker=${ticker}`;
-
+  //----------------- perform analysis with global cache ----------------
+const getAiAnalysis = async (ticker) => {
+  if (!ticker) return;
+  
+  setOpenAnalysisModal(true);
+  
+  try {
+    // Standardize ticker to uppercase for consistent keys
+    const standardizedTicker = ticker.toUpperCase();
+    
+    // Check Firebase for cached analysis
+    console.log(`Checking global cache for ${standardizedTicker} analysis...`);
+    const dbRef = ref(database);
+    const snapshot = await get(child(dbRef, `stockAnalyses/${standardizedTicker}`));
+    
+    if (snapshot.exists()) {
+      const cachedAnalysis = snapshot.val();
+      const analysisDate = new Date(cachedAnalysis.timestamp);
+      const now = new Date();
+      
+      // Calculate difference in days
+      const diffTime = Math.abs(now - analysisDate);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      // If analysis is less than 3 days old, use it
+      if (diffDays < 3) {
+        console.log(`Using cached analysis for ${standardizedTicker} from ${analysisDate.toLocaleString()} (${diffDays} days old)`);
+        
+        // Set the cached analysis data to state
+        setAiAnalysy(cachedAnalysis.analysis);
+        return;
+      } else {
+        console.log(`Cached analysis for ${standardizedTicker} is ${diffDays} days old. Getting fresh analysis.`);
+      }
+    } else {
+      console.log(`No cached analysis found for ${standardizedTicker}. Performing new analysis.`);
+    }
+    
+    // If we got here, we need a fresh analysis
+    const deepSeekUrl = `${API_URL}/deepseek-analysis?ticker=${standardizedTicker}`;
+    
     const response = await fetch(deepSeekUrl);
     const result = await response.json();
-
+    
     if (!response.ok) {
       console.log(response.status, result.message);
       return;
     }
-
-    setAiAnalysy(result.data);
-    console.log(response.status, result.message);
+    
+    // Get analysis data from API response
+    const analysisData = result.data;
+    setAiAnalysy(analysisData);
+    
+    // Save new analysis to Firebase
+    await saveAnalysisToCache(standardizedTicker, analysisData);
+    
+    console.log(`Fresh analysis for ${standardizedTicker} completed and cached.`);
+  } catch (error) {
+    console.error("Error in AI Analysis:", error);
   }
+};
 
-  //----------------- useEffects ------------------
+// Helper function to save analysis to Firebase cache
+const saveAnalysisToCache = async (ticker, analysisData) => {
+  try {
+    const dbRef = ref(database, `stockAnalyses/${ticker}`);
+    await set(dbRef, {
+      analysis: analysisData,
+      timestamp: new Date().toISOString(),
+      ticker: ticker
+    });
+    console.log(`Analysis for ${ticker} saved to global cache!`);
+    return true;
+  } catch (error) {
+    console.error("Error saving analysis to Firebase:", error);
+    return false;
+  }
+};
+
+//----------------- useEffects ------------------
   //get candlesticks live
   useEffect(() => {
     if (!currentStock) return;

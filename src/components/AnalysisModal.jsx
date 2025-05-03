@@ -5,9 +5,11 @@ import {
   useTheme, useMediaQuery
 } from '@mui/material';
 import { IoMdSend } from 'react-icons/io';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaCloudDownloadAlt } from 'react-icons/fa';
 import { green, blue, grey, purple, teal } from '@mui/material/colors';
 import OpenAI from "openai";
+import { ref, set, get, child } from "firebase/database";
+import { database } from "../firebaseConfig";
 
 // Enhanced modal styling with follow-up question functionality
 const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
@@ -22,6 +24,8 @@ const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
     const textToStream = useRef('');
     const streamIntervalRef = useRef(null);
     const contentRef = useRef(null);
+    const [analysisDate, setAnalysisDate] = useState(null);
+    const [isFromCache, setIsFromCache] = useState(false);
     
     // OpenAI client configuration
     const ORG_ID = process.env.REACT_APP_OPENAI_ORG_ID;
@@ -143,18 +147,30 @@ const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
         if (result && typeof result === 'string') {
             setLoading(false);
             simulateStreaming(result);
-            // Store the initial analysis as context
-            setConversation([{
-                role: "system",
-                content: `You are a financial analyst assistant analyzing ${stock}. This was your initial analysis: ${result}`
-            }]);
+            // Store the initial analysis as context with more detailed instructions
+            setConversation([
+                {
+                    role: "system",
+                    content: `You are a financial analyst assistant analyzing ${stock}. Use the following context from the previous analysis to maintain consistency and answer follow-up questions thoroughly. Remember key metrics, technical indicators, fundamental data, and your recommendation.`
+                },
+                {
+                    role: "assistant",
+                    content: result
+                }
+            ]);
         } else if (result && result.analysis) {
             setLoading(false);
             simulateStreaming(result.analysis);
-            setConversation([{
-                role: "system",
-                content: `You are a financial analyst assistant analyzing ${stock}. This was your initial analysis: ${result.analysis}`
-            }]);
+            setConversation([
+                {
+                    role: "system",
+                    content: `You are a financial analyst assistant analyzing ${stock}. Use the following context from the previous analysis to maintain consistency and answer follow-up questions thoroughly. Remember key metrics, technical indicators, fundamental data, and your recommendation.`
+                },
+                {
+                    role: "assistant",
+                    content: result.analysis
+                }
+            ]);
         } else if (result) {
             setLoading(false);
             const combinedText = [
@@ -163,10 +179,16 @@ const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
                 `Fundamental Analysis: ${result.fundamental_analysis || ''}`
             ].join('\n\n');
             simulateStreaming(combinedText);
-            setConversation([{
-                role: "system",
-                content: `You are a financial analyst assistant analyzing ${stock}. This was your initial analysis: ${combinedText}`
-            }]);
+            setConversation([
+                {
+                    role: "system",
+                    content: `You are a financial analyst assistant analyzing ${stock}. Use the following context from the previous analysis to maintain consistency and answer follow-up questions thoroughly. Remember key metrics, technical indicators, fundamental data, and your recommendation.`
+                },
+                {
+                    role: "assistant",
+                    content: combinedText
+                }
+            ]);
         }
     }, [result, stock]);
 
@@ -219,11 +241,26 @@ const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
         contentRef.current.scrollTop = contentRef.current.scrollHeight;
         
         try {
+            // Add context preservation instructions to the first message if not already present
+            let messagesWithContext = [...updatedConversation];
+            if (messagesWithContext[0].role === "system" && 
+                !messagesWithContext[0].content.includes("preserve context")) {
+                messagesWithContext[0] = {
+                    role: "system",
+                    content: messagesWithContext[0].content + 
+                        ` Always preserve context from our entire conversation history. For follow-up questions about ${stock}, 
+                        refer to specific data points and analysis mentioned earlier. Continue with the same analytical 
+                        approach and maintain consistent formatting for your answers.`
+                };
+            }
+            
             // Send to OpenAI API with streaming response
             const stream = await client.chat.completions.create({
                 model: "gpt-4o",
-                messages: updatedConversation,
+                messages: messagesWithContext,
                 stream: true,
+                temperature: 0.4,  
+                max_tokens: 1000,
             });
             
             // Remove loading indicator
@@ -234,7 +271,6 @@ const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
             const answerContainer = document.createElement('div');
             answerContainer.style.marginBottom = '20px';
             answerContainer.style.padding = '12px 15px';
-            // Change background to match main content area instead of green
             answerContainer.style.backgroundColor = 'transparent'; 
             answerContainer.style.borderLeft = `3px solid ${teal[600]}`;
             answerContainer.style.borderRadius = '0';
@@ -311,6 +347,37 @@ const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
             handleSend();
         }
     };
+
+    // Add timestamp indicator component
+    useEffect(() => {
+      if (open && stock) {
+        // Check if there's cached data and get its timestamp
+        const checkCacheTimestamp = async () => {
+          try {
+            const dbRef = ref(database);
+            const snapshot = await get(child(dbRef, `stockAnalyses/${stock.toUpperCase()}`));
+            
+            if (snapshot.exists()) {
+              const cachedData = snapshot.val();
+              const timestampDate = new Date(cachedData.timestamp);
+              
+              // Set a timestamp indicator in the UI
+              setAnalysisDate(timestampDate);
+              
+              // Check freshness
+              const now = new Date();
+              const diffTime = Math.abs(now - timestampDate);
+              const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+              setIsFromCache(diffDays < 3);
+            }
+          } catch (error) {
+            console.error("Error getting cache timestamp:", error);
+          }
+        };
+        
+        checkCacheTimestamp();
+      }
+    }, [open, stock]);
 
     return (
         <Modal 
@@ -477,6 +544,54 @@ const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
                                 
                                 {streamComplete && (
                                     <>
+                                        <Divider sx={{ my: 3, bgcolor: green[900], opacity: 0.7 }} />
+                                        
+                                        {/* Analysis timestamp indicator */}
+                                        <Box 
+                                          sx={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            mb: 2,
+                                            opacity: 0.8
+                                          }}
+                                        >
+                                          <Typography 
+                                            variant="caption" 
+                                            sx={{ 
+                                              color: grey[400],
+                                              fontSize: '0.75rem',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: 0.5
+                                            }}
+                                          >
+                                            {isFromCache && <FaCloudDownloadAlt size={12} color={teal[400]} />}
+                                            {isFromCache ? 'Globally cached analysis' : 'Fresh analysis'}
+                                          </Typography>
+                                          
+                                          <Typography 
+                                            variant="caption" 
+                                            sx={{ 
+                                              color: grey[500],
+                                              fontSize: '0.7rem',
+                                              fontStyle: 'italic'
+                                            }}
+                                          >
+                                            Analysis as of: {analysisDate ? analysisDate.toLocaleDateString('en-US', {
+                                              month: 'short',
+                                              day: 'numeric',
+                                              year: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit'
+                                            }) : new Date().toLocaleDateString('en-US', {
+                                              month: 'short',
+                                              day: 'numeric',
+                                              year: 'numeric'
+                                            })}
+                                          </Typography>
+                                        </Box>
+                                        
                                         <Divider sx={{ my: 3, bgcolor: green[900], opacity: 0.7 }} />
                                         <Typography 
                                             variant="caption" 
