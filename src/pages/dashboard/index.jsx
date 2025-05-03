@@ -220,6 +220,7 @@ export default function DashboardPage() {
 
   // ------------------ Stock Data ------------------
   const getStockData = async (ticker) => {
+    console.log("John ticker", ticker);
     if (!ticker) {
       console.log("no ticker provided, ticker is", ticker);
       return;
@@ -279,8 +280,9 @@ export default function DashboardPage() {
   //----------------- perform analysis ----------------
   const getAiAnalysis = async (ticker) => {
     const url = `${API_URL}/analysis?ticker=${ticker}`;
+    const deepSeekUrl = `${API_URL}/deepseek-analysis?ticker=${ticker}`;
 
-    const response = await fetch(url);
+    const response = await fetch(deepSeekUrl);
     const result = await response.json();
 
     if (!response.ok) {
@@ -748,7 +750,7 @@ export default function DashboardPage() {
                   <Divider sx={{ my: 2, bgcolor: green[900], opacity: 0.7 }} />
                   
                   { stockNews?.length > 0 ? (
-                    stockNews.slice(0,4).map((news, index) => (
+                    stockNews.slice(0,10).map((news, index) => (
                       <Link key={news.id} href={news?.url} target="_blank" underline="none" color={white}>
                         <Box key={index} py={2.5} px={2.5} mb={0.5} 
                         sx={{
