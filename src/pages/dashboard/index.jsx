@@ -220,31 +220,40 @@ export default function DashboardPage() {
 
   // ------------------ Stock Data ------------------
   const getStockData = async (ticker) => {
-    console.log("John ticker", ticker);
+    console.log("Getting stock data for ticker:", ticker);
     if (!ticker) {
-      console.log("no ticker provided, ticker is", ticker);
+      console.log("No ticker provided, ticker is", ticker);
       return;
     }
-
+  
     try {
       const response = await fetch(`${API_URL}/yf/stockdata?ticker=${ticker}`);
       const result = await response.json();
-
+  
       if (!response.ok) {
         console.log(response.status, response.statusText, result.message);
-        window.location.reload()
         return;
       }
       
-      /**
-       * If response is ok, call all other functions to get stock stats
-       * save the ticker if we got a response.
-      **/
-      setStockData(result?.data?.body[0]); 
-      saveLastSearch(userId, ticker);
-      console.log(response.status, response.statusText, result.message);
-    } catch (error){
-      console.log(error);
+      // Check if we have valid stock data in the response
+      if (result?.data?.body && result.data.body.length > 0) {
+        const stockDataResult = result.data.body[0];
+        
+        // Set the stock data in state
+        setStockData(stockDataResult);
+        
+        // Only save the last search if we have valid stock data
+        if (userId && stockDataResult.regularMarketPrice !== undefined) {
+          console.log("Valid stock data received, saving last search:", ticker);
+          saveLastSearch(userId, ticker);
+        }
+        
+        console.log("Stock data successfully loaded:", response.status, response.statusText);
+      } else {
+        console.log("No valid stock data in response");
+      }
+    } catch (error) {
+      console.error("Error fetching stock data:", error);
     }
   };
 
