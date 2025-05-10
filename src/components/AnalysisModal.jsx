@@ -11,7 +11,6 @@ import OpenAI from "openai";
 import { ref, set, get, child } from "firebase/database";
 import { database } from "../firebaseConfig";
 
-// Enhanced modal styling with follow-up question functionality
 const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
