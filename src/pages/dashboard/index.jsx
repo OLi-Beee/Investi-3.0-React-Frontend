@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { 
   Box, Button, TextField, Typography, Grid, Paper, 
   Divider, Link, InputAdornment, useMediaQuery, useTheme,
-  IconButton, Drawer
+  IconButton, Drawer, Fab
 } from "@mui/material";
-import { FaSearch, FaPlus, FaRegCommentDots, FaChartLine } from "react-icons/fa";
+import { FaSearch, FaPlus, FaRegCommentDots, FaChartLine, FaTimes, FaList } from "react-icons/fa";
 import { IoAnalyticsSharp, IoStatsChartSharp } from "react-icons/io5";
 import { HiOutlineMenu } from "react-icons/hi"; // Add this import for the hamburger icon
 import { useNavigate } from "react-router-dom";
@@ -39,6 +39,9 @@ export default function DashboardPage() {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
+  // Add state for mobile wishlist drawer
+  const [mobileWishlistOpen, setMobileWishlistOpen] = useState(false);
 
   // ------------------ State ------------------
   const [stock, setStock] = useState("");
@@ -439,7 +442,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
         ? "1fr" 
         : isMediumScreen 
           ? "220px 1fr" 
-          : "220px minmax(0, 4fr) minmax(0, 1fr)", // Adjust the ratio here
+          : "220px minmax(0, 2.8fr) minmax(0, 1fr)", // Adjust the ratio here
       gridAutoFlow: "column", // Force elements to stay in their column
       height: "100vh",
       backgroundColor: darkBg, 
@@ -458,7 +461,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
         onClose={handleDrawerToggle}
         variant="temporary"
         ModalProps={{
-          keepMounted: true, // Better mobile performance
+          keepMounted: true, 
         }}
         sx={{
           display: { xs: 'block', md: 'none' },
@@ -475,13 +478,13 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
 
       {/* Main Content - Reduce padding on mobile */}
       <Box sx={{ 
-        px: { xs: 0.5, sm: 2, md: 2 }, // Reduced horizontal padding on mobile
+        px: { xs: 0, sm: 2, md: 2 }, // Reduced horizontal padding on mobile
         py: { xs: 1, sm: 2, md: 2 },   // Reduced vertical padding on mobile
-        mx: "auto",
+        margin: isSmallScreen ? "" : "0px -10px 0px auto",
         overflow: "auto",
         height: "100vh",
         width: "auto",
-        maxWidth: { xs: "100%", sm: "92%" }, // Full width on mobile
+        maxWidth: { xs: "100%", sm: "95%" }, // Full width on mobile
         '&::-webkit-scrollbar': { display: 'none' },
         scrollbarWidth: 'none',
         '-ms-overflow-style': 'none',
@@ -571,14 +574,14 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
           </Box>
         )}
         
-        {/* Non-mobile search bar - keep as is */}
+        {/* Non-mobile search bar */}
         {!isSmallScreen && (
           <Box sx={{ 
             display: "flex", 
             alignItems: "center", 
             gap: 0.5, 
             mb: 1, 
-            mt: 1,
+            mt: 0,
             background: 'rgba(20, 30, 20, 0.3)',
             borderRadius: '10px',
             border: `1px solid ${grey[900]}`,
@@ -659,7 +662,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
           </Box>
         )}
         
-        {/* Rest of your content */}
+        {/* Rest content */}
         <Box>
           <Box>
 
@@ -667,16 +670,22 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
             <Box>
               <Paper sx={{ 
                 py: 3, 
-                px: 1.5, 
+                px: isSmallScreen ? 0.7 : 1.5, // Reduce padding on mobile
                 backgroundColor: 'rgba(20, 30, 20, 0.4)', 
                 minHeight: "26em", 
                 borderRadius: 2,
-                // border: `1px solid ${green[900]}`,
                 mb: 1,
-                boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                width: "97%", // Ensure paper takes full width
               }}>
-                {/* Action buttons */}
-                <Box sx={{ display: "flex", justifyContent: "end", gap: 1.5, mb: 2 }}>
+                {/* Action buttons - Full width container on mobile */}
+                <Box sx={{ 
+                  display: "flex", 
+                  justifyContent: isSmallScreen ? "space-between" : "end",
+                  gap: isSmallScreen ? 1 : 1.5, 
+                  mb: 2,
+                  width: "100%", // Full width container
+                }}>
                   <Button
                     variant="contained"
                     startIcon={<IoAnalyticsSharp />}
@@ -685,7 +694,9 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
                       backgroundColor: teal[700],
                       textTransform: "none", 
                       borderRadius: '10px',
-                      px: 2.5,
+                      px: isSmallScreen ? 1.2 : 2.5, // Smaller padding on mobile
+                      fontSize: isSmallScreen ? '0.8rem' : 'inherit',
+                      flexGrow: isSmallScreen ? 1 : 0, // Take full width on mobile
                       transition: 'all 0.2s ease',
                       '&:hover': {
                         backgroundColor: teal[600],
@@ -698,7 +709,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
                       getAiAnalysis(currentStock)
                     }}
                   >
-                    View AI Analysis
+                    {isSmallScreen ? "AI Analysis" : "View AI Analysis"}
                   </Button>
                   <Button
                     startIcon={<FaPlus />}
@@ -708,6 +719,9 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
                       borderColor: green[900], 
                       borderRadius: '10px',
                       textTransform: "none",
+                      px: isSmallScreen ? 1 : 2,
+                      fontSize: isSmallScreen ? '0.8rem' : 'inherit',
+                      flexGrow: isSmallScreen ? 1 : 0, // Take full width on mobile
                       transition: 'all 0.2s ease',
                       '&:hover': {
                         borderColor: green[700],
@@ -717,18 +731,20 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
                     }}
                     onClick={addToWishlish}
                   >
-                    Add to Wishlist
+                    {isSmallScreen ? "Add to List" : "Add to Wishlist"}
                   </Button>
                 </Box>
                 
                 {stockData?.regularMarketPrice !== undefined && stockData?.regularMarketChange !== undefined && stockData?.regularMarketChangePercent !== undefined ? (
-                  <StockChart 
-                    data={candleSticksData} 
-                    companyName={stockData?.shortName} 
-                    exchangeCode={companyMetadata?.exchangeCode} 
-                    price={stockData?.regularMarketPrice}
-                    marketPriceChange={`${stockData.regularMarketChange.toFixed(2)} (${stockData.regularMarketChangePercent.toFixed(2)}%) Today`}
-                  />
+                  <Box sx={{ width: '100%' }}> {/* Full width container for chart */}
+                    <StockChart 
+                      data={candleSticksData} 
+                      companyName={stockData?.shortName} 
+                      exchangeCode={companyMetadata?.exchangeCode} 
+                      price={stockData?.regularMarketPrice}
+                      marketPriceChange={`${stockData.regularMarketChange.toFixed(2)} (${stockData.regularMarketChangePercent.toFixed(2)}%) Today`}
+                    />
+                  </Box>
                 ) : (
                   <Box sx={{ 
                     display: 'flex', 
@@ -736,7 +752,8 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
                     alignItems: 'center', 
                     height: '300px',
                     flexDirection: 'column',
-                    gap: 2
+                    gap: 2,
+                    width: '100%'
                   }}>
                     <FaChartLine size={40} style={{ color: teal[400], opacity: 0.7 }} />
                     <Typography variant="body1" color={grey[400]} sx={{ fontStyle: 'italic' }}>
@@ -859,6 +876,88 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
           marketChange={stockData?.regularMarketChange}
           sx={{ width: "100%" }} // Make sure it uses full allocated width
         />
+      )}
+
+      {/* Mobile Wishlist Drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileWishlistOpen}
+        onClose={() => setMobileWishlistOpen(false)}
+        variant="temporary"
+        ModalProps={{
+          keepMounted: true,
+        }}
+        sx={{
+          display: { md: 'none' },
+          '& .MuiDrawer-paper': { 
+            width: '85%',
+            maxWidth: '320px',
+            boxSizing: 'border-box',
+            background: darkGradient,
+            borderLeft: `1px solid ${green[900]}`,
+          },
+        }}
+      >
+        <Box sx={{ 
+          height: '100%', 
+          display: 'flex', 
+          flexDirection: 'column',
+          p: 0
+        }}>
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            p: 2,
+            borderBottom: `1px solid ${green[900]}`,
+            background: `linear-gradient(90deg, ${teal[900]}, ${green[900]})`,
+          }}>
+            <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+              My Watchlist
+            </Typography>
+            <IconButton 
+              onClick={() => setMobileWishlistOpen(false)}
+              sx={{ color: 'white' }}
+            >
+              <FaTimes />
+            </IconButton>
+          </Box>
+          
+          <Box sx={{ flexGrow: 1, overflow: 'auto', p: 0 }}>
+            <WishlistWIdget 
+              wishlist={wishlist} 
+              removeFromWishlist={removeFromWishlist} 
+              handleSearch={(ticker) => {
+                handleSearch(ticker);
+                setMobileWishlistOpen(false);
+              }} 
+              ticker={currentStock} 
+              marketChange={stockData?.regularMarketChange}
+              isMobile={true}
+            />
+          </Box>
+        </Box>
+      </Drawer>
+
+      {/* Mobile Wishlist Toggle Button */}
+      {isSmallScreen && (
+        <Fab
+          size="medium"
+          sx={{
+            position: 'fixed',
+            bottom: 20,
+            right: 20,
+            bgcolor: teal[700],
+            color: 'white',
+            '&:hover': {
+              bgcolor: teal[600],
+            },
+            zIndex: 1000
+          }}
+          onClick={() => setMobileWishlistOpen(true)}
+        >
+          <FaList />
+        </Fab>
       )}
 
       <StockAnalysisModal open={openAnalysisModal} handleClose={() => setOpenAnalysisModal(false)} result={aiAnalysis} stock={currentStock}/>

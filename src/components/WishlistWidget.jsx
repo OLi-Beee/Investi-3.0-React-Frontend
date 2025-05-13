@@ -4,11 +4,14 @@ import { red, green, grey, teal } from '@mui/material/colors';
 import { useEffect, useState, useCallback } from "react";
 import { IoBookmarkOutline, IoTrendingUp, IoTrendingDown } from "react-icons/io5";
 
+// Define missing constants
 const darkBg = "#0d0d0d";
 const white = "#ffffff";
+const cardBg = "rgba(20, 30, 20, 0.4)";
+const cardActiveBg = "rgba(0, 50, 30, 0.4)";
 const API_URL = process.env.REACT_APP_API_URL;
 
-const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch, marketChange, sx }) => {
+const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch, ticker: currentTicker, marketChange, isMobile = false }) => {
   const [stockData, setStockData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -111,183 +114,117 @@ const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch, marketChan
     );
   };
 
-  // The rest of your component stays the same...
   return (
     <Box
       sx={{
-        height: "100vh",
-        background: 'linear-gradient(to bottom, #121212, #0d0d0d)',
-        borderLeft: `1px solid ${grey[900]}`,
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        '&::after': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '1px',
-          height: '100%',
-          background: `linear-gradient(to bottom, transparent, ${green[900]}, transparent)`,
-          opacity: 0.6,
-        },
-        ...(sx || {})
+        width: '100%',
+        height: isMobile ? 'auto' : '100vh',
+        padding: isMobile ? 0 : 2,
+        overflowY: "auto",
+        background: isMobile ? 'transparent' : 'rgba(20, 30, 20, 0.2)',
+        borderLeft: isMobile ? 'none' : `1px solid ${green[900]}`,
       }}
     >
-      {/* Header */}
-      <Box sx={{ 
-        p: 3,
-        borderBottom: `1px solid ${grey[900]}`,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1
-      }}>
-        <IoBookmarkOutline size={20} style={{ color: teal[400] }} />
-        <Typography 
-          variant="h6" 
-          fontWeight="bold" 
-          sx={{ 
-            color: teal[300],
-            letterSpacing: 0.5
-          }}
-        >
-          Watchlist
+      {!isMobile && (
+        <Typography variant="h6" fontWeight="bold" color={teal[400]} sx={{ mb: 2 }}>
+          My Watchlist
         </Typography>
-      </Box>
-
-      {/* Watchlist items */}
-      <Box
-        sx={{
-          height: "calc(100vh - 74px)",
-          overflowY: "auto",
-          p: 2,
-          '&::-webkit-scrollbar': {
-            width: '6px',
-          },
-          '&::-webkit-scrollbar-track': {
-            background: 'rgba(0,0,0,0.1)',
-            borderRadius: '10px',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            background: `rgba(${parseInt(green[900].slice(1, 3), 16)}, ${parseInt(green[900].slice(3, 5), 16)}, ${parseInt(green[900].slice(5, 7), 16)}, 0.5)`,
-            borderRadius: '10px',
-          },
-        }}
-      >
-        {wishlist && wishlist.length > 0 ? (
-          wishlist.map((ticker) => (
-            <Paper
-              key={ticker}
-              elevation={0}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: "space-between",
-                background: 'rgba(20, 30, 20, 0.4)',
-                borderRadius: 2,
-                border: `1px solid ${grey[900]}`,
-                mb: 2,
-                overflow: 'hidden',
-                transition: 'all 0.2s ease',
-                cursor: "pointer",
-                "&:hover": {
-                  transform: 'translateY(-3px)',
-                  boxShadow: `0 4px 12px rgba(0,128,0,0.2)`,
-                  border: `1px solid ${green[900]}`,
-                }
-              }}
-              onClick={() => handleSearch(ticker)}
-            >
-              <Box sx={{ 
-                display: "flex", 
-                justifyContent: "space-between", 
-                alignItems: "center", 
-                p: 2,
-                borderBottom: `1px solid ${grey[900]}`
-              }}>
-                <Typography 
-                  variant="h6" 
-                  fontWeight="600"
-                  sx={{ color: grey[100] }}
-                >
-                  {ticker}
-                </Typography>
-                <Box
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeFromWishlist(ticker);
-                  }}
-                  sx={{
-                    width: 28,
-                    height: 28,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '50%',
+      )}
+      
+      {wishlist && wishlist.length > 0 ? (
+        wishlist.map((stockTicker, index) => (
+          <Paper 
+            key={index} 
+            sx={{
+              backgroundColor: currentTicker === stockTicker ? cardActiveBg : cardBg,
+              borderRadius: 2,
+              p: isMobile ? 1.5 : 2,
+              mb: isMobile ? 1 : 2,
+              maxWidth: isMobile ? '90%' : "80%",
+              cursor: "pointer",
+              border: currentTicker === stockTicker ? `1px solid ${green[700]}` : `1px solid transparent`, 
+              '&:hover': {
+                transform: 'translateY(-3px)',
+                backgroundColor: 'rgba(30, 40, 30, 0.5)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                borderColor: green[900]
+              },
+              transition: 'all 0.2s ease',
+            }}
+            onClick={() => handleSearch(stockTicker)}
+          >
+            <Box sx={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center", 
+              p: 1.5,
+              borderBottom: `1px solid ${grey[900]}`
+            }}>
+              <Typography 
+                variant="h6" 
+                fontWeight="600"
+                sx={{ color: grey[100] }}
+              >
+                {stockTicker}
+              </Typography>
+              <Box
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeFromWishlist(stockTicker);
+                }}
+                sx={{
+                  width: 20,
+                  height: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  }
+                }}
+              >
+                <RxCross2 
+                  fontSize={16} 
+                  style={{ 
+                    color: grey[400],
                     transition: 'all 0.2s ease',
                     '&:hover': {
-                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                      color: red[400]
                     }
-                  }}
-                >
-                  <RxCross2 
-                    fontSize={16} 
-                    style={{ 
-                      color: grey[400],
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        color: red[400]
-                      }
-                    }} 
-                  />
-                </Box>
+                  }} 
+                />
               </Box>
-              
-              <Box sx={{ 
-                p: 2, 
-                display: 'flex', 
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <Typography 
-                  sx={{ 
-                    fontWeight: "bold",
-                    fontSize: '0.9rem',
-                    color: grey[300],
-                    letterSpacing: 0.5
-                  }}
-                >
-                  Price
-                </Typography>
-                {getPriceForTicker(ticker)}
-              </Box>
-            </Paper>
-          ))
-        ) : (
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            height: '100%',
-            opacity: 0.7,
-            p: 4
-          }}>
-            <IoBookmarkOutline size={40} style={{ color: grey[700], marginBottom: '16px' }} />
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                color: grey[500], 
-                textAlign: 'center',
-                fontStyle: 'italic'
-              }}
-            >
-              Your watchlist is empty. Search for stocks and add them to your watchlist.
-            </Typography>
-          </Box>
-        )}
-      </Box>
+            </Box>
+            
+            <Box sx={{ 
+              p: 1.5, 
+              display: 'flex', 
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <Typography 
+                sx={{ 
+                  fontWeight: "bold",
+                  fontSize: '0.9rem',
+                  color: grey[300],
+                  letterSpacing: 0.5
+                }}
+              >
+                Price
+              </Typography>
+              {getPriceForTicker(stockTicker)}
+            </Box>
+          </Paper>
+        ))
+      ) : (
+        <Box sx={{ textAlign: "center", mt: 4, px: isMobile ? 2 : 0 }}>
+          <Typography color={grey[500]} sx={{ fontStyle: "italic" }}>
+            Your watchlist is empty
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };
