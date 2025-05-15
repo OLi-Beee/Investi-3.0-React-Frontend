@@ -398,7 +398,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
       }
     });
   
-    return () => unsubscribe(); // Clean up listener
+    return () => unsubscribe(); 
   }, []);
 
   useEffect(() => {
@@ -442,8 +442,8 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
         ? "1fr" 
         : isMediumScreen 
           ? "220px 1fr" 
-          : "220px minmax(0, 2.8fr) minmax(0, 1fr)", // Adjust the ratio here
-      gridAutoFlow: "column", // Force elements to stay in their column
+          : "220px minmax(0, 2.8fr) minmax(0, 1fr)", 
+      gridAutoFlow: "column", 
       height: "100vh",
       backgroundColor: darkBg, 
       color: "white", 
@@ -478,13 +478,13 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
 
       {/* Main Content - Reduce padding on mobile */}
       <Box sx={{ 
-        px: { xs: 0, sm: 2, md: 2 }, // Reduced horizontal padding on mobile
-        py: { xs: 1, sm: 2, md: 2 },   // Reduced vertical padding on mobile
-        margin: isSmallScreen ? "" : "0px -10px 0px auto",
+        px: { xs: 0, sm: 2, md: 2 }, 
+        py: { xs: 1, sm: 2, md: 2 },  
+        margin: "0px",
         overflow: "auto",
         height: "100vh",
         width: "auto",
-        maxWidth: { xs: "100%", sm: "95%" }, // Full width on mobile
+        maxWidth: { xs: "100%", sm: "92%" }, // Full width on mobile
         '&::-webkit-scrollbar': { display: 'none' },
         scrollbarWidth: 'none',
         '-ms-overflow-style': 'none',

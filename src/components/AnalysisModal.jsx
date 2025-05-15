@@ -11,6 +11,7 @@ import OpenAI from "openai";
 import { ref, set, get, child } from "firebase/database";
 import { database } from "../firebaseConfig";
 
+// Enhanced modal styling with follow-up question functionality
 const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -31,17 +32,12 @@ const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
     const PROJ_ID = process.env.REACT_APP_OPENAI_PROJECT_ID;
     const API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
   
-    // const client = new OpenAI({
-    //   apiKey: API_KEY,
-    //   organization: ORG_ID,
-    //   project: PROJ_ID,
-    //   dangerouslyAllowBrowser: true
-    // });
-
     const client = new OpenAI({
-        apiKey: API_KEY,
-        dangerouslyAllowBrowser: true // Required for client-side usage
-      });
+      apiKey: API_KEY,
+      organization: ORG_ID,
+      project: PROJ_ID,
+      dangerouslyAllowBrowser: true
+    });
     
     // Style object with mobile responsiveness
     const style = {
