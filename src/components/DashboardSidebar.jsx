@@ -1,8 +1,8 @@
-import { Box, Button, Typography, Tooltip } from "@mui/material";
+import { Box, Button, Typography, Tooltip, Divider } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
-import { green, blue, grey, teal } from "@mui/material/colors";
+import { green, blue, grey, teal, red } from "@mui/material/colors";
 import { 
   IoHomeSharp, 
   IoNewspaperOutline, 
@@ -185,34 +185,70 @@ function DashboardSidebar({ onClose }) {
               Settings
             </Button>
           </Tooltip>
+          
+          {/* Divider before Sign Out */}
+          <Divider sx={{ 
+            my: 2, 
+            bgcolor: grey[900], 
+            width: '90%', 
+            mx: 'auto',
+            opacity: 0.7 
+          }} />
+          
+          {/* Sign Out Button integrated into main navigation */}
+          <Tooltip title="Sign Out" placement="right" arrow>
+            <Button
+              onClick={handleSignOut}
+              startIcon={<IoLogOutOutline size={20} />}
+              sx={{
+                justifyContent: "flex-start",
+                color: red[400],
+                backgroundColor: 'transparent',
+                borderRadius: '10px',
+                py: 1.2,
+                px: 2,
+                mb: 0.5,
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  color: red[300],
+                  transform: 'translateX(5px)',
+                },
+                '& .MuiButton-startIcon': {
+                  color: red[400],
+                  marginRight: 1.5,
+                  transition: 'all 0.2s ease',
+                },
+                '&:hover .MuiButton-startIcon': {
+                  color: red[300],
+                },
+                fontWeight: 400,
+                textTransform: 'none',
+                fontSize: '0.95rem',
+                letterSpacing: 0.3,
+              }}
+            >
+              Sign Out
+            </Button>
+          </Tooltip>
         </Box>
       </Box>
 
-      {/* Footer Section */}
+      {/* Removed the footer section with Sign Out button */}
       <Box sx={{ mb: 4, px: 1 }}>
-        <Button
-          variant="outlined"
-          color="error"
-          onClick={handleSignOut}
-          startIcon={<IoLogOutOutline size={20} />}
-          sx={{
-            justifyContent: "flex-start",
-            color: "#ef4444",
-            borderColor: 'rgba(239, 68, 68, 0.2)',
-            borderRadius: '10px',
-            py: 1.2,
-            px: 2,
-            transition: 'all 0.2s ease',
-            textTransform: 'none',
-            '&:hover': {
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              borderColor: 'rgba(239, 68, 68, 0.5)',
-              transform: 'translateX(5px)',
-            },
+        {/* You can add a version number or other info here */}
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            color: grey[700],
+            display: 'block',
+            textAlign: 'center',
+            fontSize: '0.7rem',
+            mt: 2 
           }}
         >
-          Sign Out
-        </Button>
+          Investi v1.0.0
+        </Typography>
       </Box>
     </Box>
   );

@@ -31,12 +31,17 @@ const StockAnalysisModal = ({ open, handleClose, result, stock }) => {
     const PROJ_ID = process.env.REACT_APP_OPENAI_PROJECT_ID;
     const API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
   
+    // const client = new OpenAI({
+    //   apiKey: API_KEY,
+    //   organization: ORG_ID,
+    //   project: PROJ_ID,
+    //   dangerouslyAllowBrowser: true
+    // });
+
     const client = new OpenAI({
-      apiKey: API_KEY,
-      organization: ORG_ID,
-      project: PROJ_ID,
-      dangerouslyAllowBrowser: true
-    });
+        apiKey: API_KEY,
+        dangerouslyAllowBrowser: true // Required for client-side usage
+      });
     
     // Style object with mobile responsiveness
     const style = {
