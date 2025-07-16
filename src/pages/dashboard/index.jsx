@@ -223,9 +223,9 @@ export default function DashboardPage() {
 
   // ------------------ Stock Data ------------------
   const getStockData = async (ticker) => {
-    console.log("Getting stock data for ticker:", ticker);
+    // console.log("Getting stock data for ticker:", ticker);
     if (!ticker) {
-      console.log("No ticker provided, ticker is", ticker);
+      // console.log("No ticker provided, ticker is", ticker);
       return;
     }
   
@@ -247,7 +247,7 @@ export default function DashboardPage() {
         
         // Only save the last search if we have valid stock data
         if (userId && stockDataResult.regularMarketPrice !== undefined) {
-          console.log("Valid stock data received, saving last search:", ticker);
+          // console.log("Valid stock data received, saving last search:", ticker);
           saveLastSearch(userId, ticker);
         }
         
