@@ -33,7 +33,7 @@ const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch, ticker: cu
 
       // Only update if response is ok
       if (!response.ok) {
-        console.error("Error fetching data for ticker:", ticker, result.message || response.statusText);
+        console.log("Error fetching data for ticker:", ticker, result.message || response.statusText);
         return;
       }
 
@@ -50,7 +50,7 @@ const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch, ticker: cu
       
       console.log("Data received for ticker:", ticker, result.data);
     } catch (error) {
-      console.error("Error fetching ticker data:", ticker, error.message);
+      console.log("Error fetching ticker data:", ticker, error.message);
       setError(true);
     } finally {
       setLoading(false);
