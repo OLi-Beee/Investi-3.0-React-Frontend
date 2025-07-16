@@ -153,7 +153,7 @@ export default function DashboardPage() {
       }
   
     } catch (error) {
-      console.error("Error saving to wishlist:", error);
+      console.log("Error saving to wishlist:", error);
     }
   }
 
@@ -173,7 +173,7 @@ export default function DashboardPage() {
         setWishlist([]); // Optional: reset to empty array if not found
       }
     } catch (error) {
-      console.error("Error fetching wishlist:", error);
+      console.log("Error fetching wishlist:", error);
     }
   };
 
@@ -195,7 +195,7 @@ export default function DashboardPage() {
         fetchWishlist() // update client
       }
     } catch (error) {
-      console.error("Error removing stock from wishlist:", error);
+      console.log("Error removing stock from wishlist:", error);
     }
   };
   
@@ -217,7 +217,7 @@ export default function DashboardPage() {
       setCompanyMetadata(result.data);
 
     } catch (error) {
-      console.error("Fetch error:", error);
+      console.log("Fetch error:", error);
     }
   };
 
@@ -347,7 +347,7 @@ const getAiAnalysis = async (ticker) => {
     
     console.log(`Fresh analysis for ${standardizedTicker} completed and cached.`);
   } catch (error) {
-    console.error("Error in AI Analysis:", error);
+    console.log("Error in AI Analysis:", error);
   }
 };
 
@@ -363,7 +363,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
     console.log(`Analysis for ${ticker} saved to global cache!`);
     return true;
   } catch (error) {
-    console.error("Error saving analysis to Firebase:", error);
+    console.log("Error saving analysis to Firebase:", error);
     return false;
   }
 };
@@ -422,7 +422,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
           console.log("No last search found");
         }
       } catch (error) {
-        console.error("Error getting data:", error);
+        console.log("Error getting data:", error);
       }
     };
   
