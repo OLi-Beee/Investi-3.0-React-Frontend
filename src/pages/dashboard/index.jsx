@@ -437,22 +437,24 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
   // ------------------ JSX ------------------
   return (
     <Box sx={{ 
-      display: "grid", 
-      gridTemplateColumns: isSmallScreen 
-        ? "1fr" 
-        : isMediumScreen 
-          ? "220px 1fr" 
-          : "220px minmax(0, 2.8fr) minmax(0, 1fr)", 
-      gridAutoFlow: "column", 
+      display: "flex",
       height: "100vh",
       backgroundColor: darkBg, 
       color: "white", 
       background: 'linear-gradient(to bottom, #121212, #0d0d0d)',
-      overflow: "hidden"
+      overflow: "hidden",
     }}>
 
-      {/* Sidebar - Hidden on mobile */}
-      {!isSmallScreen && <DashboardSidebar />}
+      {/* Left Sidebar - Fixed width */}
+      {!isSmallScreen && (
+        <Box sx={{ 
+          width: "240px", 
+          flexShrink: 0,
+          borderRight: `1px solid ${green[900]}`,
+        }}>
+          <DashboardSidebar />
+        </Box>
+      )}
 
       {/* Mobile sidebar drawer */}
       <Drawer
@@ -476,19 +478,34 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
         <DashboardSidebar onClose={handleDrawerToggle} />
       </Drawer>
 
-      {/* Main Content - Reduce padding on mobile */}
+      {/* Main Content Area - Flexible width */}
       <Box sx={{ 
-        px: { xs: 0, sm: 2, md: 2 }, 
-        py: { xs: 1, sm: 2, md: 2 },  
-        margin: "0px",
-        overflow: "auto",
-        height: "100vh",
-        width: "auto",
-        maxWidth: { xs: "100%", sm: "92%" }, // Full width on mobile
-        '&::-webkit-scrollbar': { display: 'none' },
-        scrollbarWidth: 'none',
-        '-ms-overflow-style': 'none',
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        minWidth: 0,
       }}>
+        
+        {/* Main Content Container */}
+        <Box sx={{ 
+          flex: 1,
+          display: "flex",
+          overflow: "hidden",
+        }}>
+          
+          {/* Central Content Area */}
+          <Box sx={{ 
+            flex: 1,
+            px: { xs: 1, sm: 2, md: 3 }, 
+            py: { xs: 1, sm: 2, md: 2 },  
+            overflow: "auto",
+            display: "flex",
+            flexDirection: "column",
+            '&::-webkit-scrollbar': { display: 'none' },
+            scrollbarWidth: 'none',
+            '-ms-overflow-style': 'none',
+          }}>
         
         {/* Mobile Navigation & Search - Combined in one line */}
         {isSmallScreen && (
@@ -574,23 +591,26 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
           </Box>
         )}
         
-        {/* Non-mobile search bar */}
+        {/* Desktop search bar */}
         {!isSmallScreen && (
           <Box sx={{ 
             display: "flex", 
             alignItems: "center", 
             gap: 0.5, 
-            mb: 1, 
+            mb: 2, 
             mt: 0,
-            background: 'rgba(20, 30, 20, 0.3)',
+            background: 'rgba(40, 60, 40, 0.8)',
             borderRadius: '10px',
-            border: `1px solid ${grey[900]}`,
-            overflow: 'hidden',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            border: `2px solid ${green[500]}`,
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+            width: '100%',
+            alignSelf: 'flex-start',
+            height: '50px',
+            zIndex: 10,
           }}>
             <TextField
               fullWidth
-              placeholder={isSmallScreen ? "Search stock..." : "Search for a stock (e.g., TSLA, AAPL)"}
+              placeholder="Search for a stock (e.g., TSLA, AAPL)"
               value={stock}
               onChange={(e) => setStock(e.target.value)}
               onKeyDown={(e) => handleSearchOnEnter(e)}
@@ -600,15 +620,15 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
                   '& fieldset': { border: 'none' }
                 },
                 '& .MuiInputBase-input': {
-                  color: grey[100],
-                  fontSize: isSmallScreen ? '0.85rem' : '1rem',
-                  padding: isSmallScreen ? '8px 10px' : { xs: '10px 12px', sm: '14px 16px' },
-                  height: isSmallScreen ? '20px' : 'auto',
+                  color: white,
+                  fontSize: '1rem',
+                  padding: '12px 16px',
                   '&::placeholder': {
-                    color: grey[500],
+                    color: grey[300],
                     opacity: 1
                   }
                 },
+                height: '100%',
                 backgroundColor: 'transparent'
               }}
               InputProps={{
@@ -616,67 +636,55 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
                   <InputAdornment position="start">
                     <FaSearch style={{ 
                       color: teal[300], 
-                      fontSize: isSmallScreen ? '14px' : '16px' 
+                      fontSize: '16px' 
                     }} />
                   </InputAdornment>
                 ),
               }}
             />
-            {isSmallScreen ? (
-              <IconButton
-                size="small"
-                sx={{
-                  color: white,
-                  backgroundColor: green[700],
-                  borderRadius: 0,
-                  height: '100%',
-                  width: '40px',
-                  '&:hover': { backgroundColor: green[600] },
-                  padding: 0,
-                }}
-                onClick={() => handleSearch(stock)}
-              >
-                <FaSearch size={14} />
-              </IconButton>
-            ) : (
-              <Button
-                variant="contained"
-                sx={{
-                  backgroundColor: green[700],
-                  color: white,
-                  px: 3,
-                  py: 1.6,
-                  borderRadius: 0,
-                  "&:hover": { 
-                    backgroundColor: green[600],
-                    transform: 'translateX(2px)'
-                  },
-                  textTransform: "none",
-                  transition: 'all 0.2s ease'
-                }}
-                onClick={() => handleSearch(stock)}
-              >
-                Search
-              </Button>
-            )}
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: green[700],
+                color: white,
+                px: 3,
+                py: 1.6,
+                borderRadius: 0,
+                "&:hover": { 
+                  backgroundColor: green[600],
+                  transform: 'translateX(2px)'
+                },
+                textTransform: "none",
+                transition: 'all 0.2s ease'
+              }}
+              onClick={() => handleSearch(stock)}
+            >
+              Search
+            </Button>
           </Box>
         )}
         
-        {/* Rest content */}
         <Box>
-          <Box>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            gap: 2
+          }}>
 
             {/* Stock Chart */}
-            <Box>
+            <Box sx={{ width: '100%' }}>
               <Paper sx={{ 
                 py: 3, 
-                px: isSmallScreen ? 0.7 : 1.5, // Reduce padding on mobile
+                px: isSmallScreen ? 0.7 : 1.5, 
                 backgroundColor: 'rgba(20, 30, 20, 0.4)', 
                 minHeight: "26em", 
                 borderRadius: 2,
                 mb: 1,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                width: "97%", // Ensure paper takes full width
               }}>
                 {/* Action buttons - Full width container on mobile */}
                 <Box sx={{ 
@@ -769,10 +777,9 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
               px: 3, 
               py: 3, 
               backgroundColor: 'rgba(20, 30, 20, 0.4)',
-              width: "auto", // Changed from minWidth: "45em" to be responsive
+              width: '100%',
               minHeight: "26em", 
               borderRadius: 2,
-              // border: `1px solid ${green[900]}`,
               boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
             }}>
               <Typography color={teal[300]} fontWeight="bold" variant="h6" sx={{ mb: 1 }}>Company Profile</Typography>
@@ -866,17 +873,30 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
           </Box>
         </Box>
       </Box>
-      
+
+      {/* Right Sidebar - Wishlist (only on large screens) */}
       {!isSmallScreen && !isMediumScreen && (
-        <WishlistWIdget 
-          wishlist={wishlist} 
-          removeFromWishlist={removeFromWishlist} 
-          handleSearch={handleSearch} 
-          ticker={currentStock} 
-          marketChange={stockData?.regularMarketChange}
-          sx={{ width: "100%" }} // Make sure it uses full allocated width
-        />
+        <Box sx={{ 
+          width: "320px", 
+          flexShrink: 0,
+          borderLeft: `1px solid ${green[900]}`,
+          overflow: "auto",
+          '&::-webkit-scrollbar': { display: 'none' },
+          scrollbarWidth: 'none',
+          '-ms-overflow-style': 'none',
+        }}>
+          <WishlistWIdget 
+            wishlist={wishlist} 
+            removeFromWishlist={removeFromWishlist} 
+            handleSearch={handleSearch} 
+            ticker={currentStock} 
+            marketChange={stockData?.regularMarketChange}
+          />
+        </Box>
       )}
+
+      </Box>
+    </Box>
 
       {/* Mobile Wishlist Drawer */}
       <Drawer
