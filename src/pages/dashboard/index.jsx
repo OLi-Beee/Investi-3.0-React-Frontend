@@ -256,7 +256,7 @@ export default function DashboardPage() {
         console.log("No valid stock data in response");
       }
     } catch (error) {
-      console.error("Error fetching stock data:", error);
+      console.log("Error fetching stock data:", error);
     }
   };
 
