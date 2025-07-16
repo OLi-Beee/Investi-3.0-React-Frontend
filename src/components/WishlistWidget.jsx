@@ -50,7 +50,7 @@ const WishlistWIdget = ({ wishlist, removeFromWishlist, handleSearch, ticker: cu
       
       console.log("Data received for ticker:", ticker, result.data);
     } catch (error) {
-      console.log("Error fetching ticker data:", ticker, error.message);
+      console.log("Error fetching ticker data:", ticker, error.message || "");
       setError(true);
     } finally {
       setLoading(false);

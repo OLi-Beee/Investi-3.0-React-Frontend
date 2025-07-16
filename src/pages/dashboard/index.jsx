@@ -153,7 +153,7 @@ export default function DashboardPage() {
       }
   
     } catch (error) {
-      console.log("Error saving to wishlist:", error);
+      console.log("Error saving to wishlist:", error.message || "");
     }
   }
 
@@ -173,7 +173,7 @@ export default function DashboardPage() {
         setWishlist([]); // Optional: reset to empty array if not found
       }
     } catch (error) {
-      console.log("Error fetching wishlist:", error);
+      console.log("Error fetching wishlist:", error.message || "");
     }
   };
 
@@ -195,7 +195,7 @@ export default function DashboardPage() {
         fetchWishlist() // update client
       }
     } catch (error) {
-      console.log("Error removing stock from wishlist:", error);
+      console.log("Error removing stock from wishlist:", error.message || "");
     }
   };
   
@@ -256,7 +256,7 @@ export default function DashboardPage() {
         console.log("No valid stock data in response");
       }
     } catch (error) {
-      console.log("Error fetching stock data:", error);
+      console.log("Error fetching stock data:", error.message || "");
     }
   };
 
@@ -347,7 +347,7 @@ const getAiAnalysis = async (ticker) => {
     
     console.log(`Fresh analysis for ${standardizedTicker} completed and cached.`);
   } catch (error) {
-    console.log("Error in AI Analysis:", error);
+    console.log("Error in AI Analysis:", error.message || "");
   }
 };
 
@@ -363,7 +363,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
     console.log(`Analysis for ${ticker} saved to global cache!`);
     return true;
   } catch (error) {
-    console.log("Error saving analysis to Firebase:", error);
+    console.log("Error saving analysis to Firebase:", error.message || "");
     return false;
   }
 };
@@ -422,7 +422,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
           console.log("No last search found");
         }
       } catch (error) {
-        console.log("Error getting data:", error);
+        console.log("Error getting data:", error.message || "");
       }
     };
   
