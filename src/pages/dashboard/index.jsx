@@ -4,8 +4,8 @@ import {
   Divider, Link, InputAdornment, useMediaQuery, useTheme,
   IconButton, Drawer, Fab
 } from "@mui/material";
-import { FaSearch, FaPlus, FaRegCommentDots, FaChartLine, FaTimes, FaList } from "react-icons/fa";
-import { IoAnalyticsSharp, IoStatsChartSharp } from "react-icons/io5";
+import { FaSearch, FaRegCommentDots, FaChartLine, FaTimes, FaList } from "react-icons/fa";
+import { IoAnalyticsSharp } from "react-icons/io5";
 import { HiOutlineMenu } from "react-icons/hi"; // Add this import for the hamburger icon
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebaseConfig";
@@ -18,13 +18,14 @@ import WishlistWIdget from "../../components/WishlistWidget";
 import StockChart from "../../components/stockChart";
 import StockAnalysisModal from "../../components/AnalysisModal";
 import { getCurrentDate, isStockMarketOpen } from "../../util/apis";
+import { AutoAwesome, List } from '@mui/icons-material';
 
 // ------------------ Color Variables ------------------
 const darkGray = "#121212";
 const white = "#ffffff";
 const darkBg = "#0d0d0d";
 const black = "#000000";
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_API_URL || "https://www.investii.site";
 const darkGradient = 'linear-gradient(to bottom, #121212, #0d0d0d)';
 
 export default function DashboardPage() {
@@ -127,7 +128,7 @@ export default function DashboardPage() {
   }
 
   // --------------------- add to wishlist ------------------------
-  const addToWishlish = async () => {
+  const addToWishlist = async () => {
     if (!userId || !currentStock) console.log("userid not found", "current stock not found", currentStock)
 
     try {
@@ -706,7 +707,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
                 }}>
                   <Button
                     variant="contained"
-                    startIcon={<IoAnalyticsSharp />}
+                    startIcon={<AutoAwesome />}
                     sx={{ 
                       color: 'white', 
                       backgroundColor: teal[700],
@@ -727,10 +728,10 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
                       getAiAnalysis(currentStock)
                     }}
                   >
-                    {isSmallScreen ? "AI Analysis" : "View AI Analysis"}
+                    AI Analysis 
                   </Button>
                   <Button
-                    startIcon={<FaPlus />}
+                    startIcon={<List/>}
                     variant="outlined"
                     sx={{ 
                       color: grey[200], 
@@ -747,9 +748,9 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
                         transform: 'translateX(3px)'
                       }
                     }}
-                    onClick={addToWishlish}
+                    onClick={addToWishlist}
                   >
-                    {isSmallScreen ? "Add to List" : "Add to Wishlist"}
+                    Add to List
                   </Button>
                 </Box>
                 
