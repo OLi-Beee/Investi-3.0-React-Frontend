@@ -327,8 +327,9 @@ const getAiAnalysis = async (ticker) => {
     
     // If we got here, we need a fresh analysis
     const deepSeekUrl = `${API_URL}/deepseek-analysis?ticker=${standardizedTicker}`;
+    const openAiURL = `${API_URL}/analysis?ticker=${standardizedTicker}`;
     
-    const response = await fetch(deepSeekUrl);
+    const response = await fetch(openAiURL);
     const result = await response.json();
     
     if (!response.ok) {
