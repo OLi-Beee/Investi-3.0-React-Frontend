@@ -92,8 +92,6 @@ export default function DashboardPage() {
 
   // ------------------ Search ------------------
   const handleSearch = async (ticker) => {
-    if (!ticker) return;
-
     //write save last searched stock
     if (!ticker) {
       console.log("no user id found");
@@ -269,9 +267,8 @@ export default function DashboardPage() {
   };
 
   // ------------------ Get News ------------------
-  const getNews = async (ticker, tags) => {
+  const getNews = async (ticker) => {
     const url = ticker ? `${API_URL}/tiingo/news?ticker=${ticker}` 
-                : tags ? `${API_URL}/tiingo/news?tags=${tags}` 
                 : `${API_URL}/tiingo/news`
     try {
       const response = await fetch(url);
@@ -369,9 +366,9 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
 };
 
 //----------------- useEffects ------------------
+
   //get candlesticks live
   useEffect(() => {
-    if (!currentStock) return;
 
     const startDate = getDate365DaysAgo();
 
@@ -413,16 +410,29 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
   
         if (snapshot.exists()) {
           const ticker = snapshot.val();
+          console.log("Found last search:", ticker);
           setCurrentStock(ticker);
           getCandleSticks(ticker, startDate);
           getStockData(ticker);
           getNews(ticker);
           getCompanyMetadata(ticker);
         } else {
-          console.log("No last search found");
+          console.log("No last search found, defaulting to AAPL");
+          getCandleSticks("AAPL", startDate);
+          getStockData("AAPL");
+          getNews("AAPL");
+          getCompanyMetadata("AAPL");
         }
       } catch (error) {
         console.log("Error getting data:", error.message || "");
+        // Fallback to default ticker on error
+        console.log("Error occurred, defaulting to AAPL");
+        const ticker = "AAPL";
+        setCurrentStock(ticker);
+        getCandleSticks(ticker, startDate);
+        getStockData(ticker);
+        getNews(ticker);
+        getCompanyMetadata(ticker);
       }
     };
   
@@ -545,7 +555,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
                 fullWidth
                 placeholder="Search stock..."
                 value={stock}
-                onChange={(e) => setStock(e.target.value)}
+                onChange={(e) => setStock(e.target.value?.trim())}
                 onKeyDown={(e) => handleSearchOnEnter(e)}
                 sx={{
                   '& .MuiOutlinedInput-root': {
@@ -612,7 +622,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
               fullWidth
               placeholder="Search for a stock (e.g., TSLA, AAPL)"
               value={stock}
-              onChange={(e) => setStock(e.target.value)}
+              onChange={(e) => setStock(e.target.value?.trim())}
               onKeyDown={(e) => handleSearchOnEnter(e)}
               sx={{
                 '& .MuiOutlinedInput-root': {
@@ -777,7 +787,7 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
               px: 3, 
               py: 3, 
               backgroundColor: 'rgba(20, 30, 20, 0.4)',
-              width: '100%',
+              // width: '100%',
               minHeight: "26em", 
               borderRadius: 2,
               boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
