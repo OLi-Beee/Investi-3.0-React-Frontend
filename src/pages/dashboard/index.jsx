@@ -787,12 +787,14 @@ const saveAnalysisToCache = async (ticker, analysisData) => {
               px: 3, 
               py: 3, 
               backgroundColor: 'rgba(20, 30, 20, 0.4)',
-              // width: '100%',
+              maxWidth: '100%',
               minHeight: "26em", 
               borderRadius: 2,
               boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
             }}>
-              <Typography color={teal[300]} fontWeight="bold" variant="h6" sx={{ mb: 1 }}>Company Profile</Typography>
+              <Typography color={teal[300]} fontWeight="bold" variant="h6" sx={{ mb: 1 }}>
+                Company Profile
+              </Typography>
 
               {companyMetadata?.description ? (
                 <Typography mt={1} variant="body2" color={grey[300]} sx={{ lineHeight: 1.7, letterSpacing: 0.3 }}>
